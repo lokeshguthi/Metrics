@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="main :: headTag">
+</head>
+<body>
+<div th:replace="main :: navBar"></div>
+
+<div class="container">
+    <p><a th:href="@{/exercise/{ex}(ex=${exercise})}">Zurück zu Übung
+        <th:block th:text="${exercise}"/>
+    </a></p>
+    <div th:replace="main :: errorMsg"></div>
+
+    <h1 th:text="${'Klausurauswertung ' + examDetails.label + ' (' + @format.day(examDetails.date) + ')'}"></h1>
+
+    <div id="resultdiv">
+        <table class="table table-condensed table-bordered" style="display: inline-block; width: auto; font-size: small;" id="resulttable">
+            <thead>
+                <tr>
+                    <th>P/A</th>
+                    <th:block th:each="task : ${tasks}">
+                        <th th:text="${task.id}"></th>
+                    </th:block>
+                </tr>
+            </thead>
+            <tbody>
+                <th:block th:each="row : ${resultTable}">
+                    <tr>
+                       <td th:text="${row.key}"></td>
+                        <th:block th:each="task : ${tasks}">
+                            <td th:if="${row.value.get(task.id)}" th:text="${row.value.get(task.id)}"></td>
+                            <td th:unless="${row.value.get(task.id)}">-</td>
+                        </th:block>
+                    </tr>
+                </th:block>
+            </tbody>
+        </table>
+    </div>
+
+    <div id="groupresultdiv">
+        <table class="table table-condensed table-bordered" style="display: inline-block; width: auto; font-size: small;" id="groupresulttable">
+            <thead>
+            <tr>
+                <th>G/A</th>
+                <th:block th:each="task : ${tasks}">
+                    <th th:text="${task.id}"></th>
+                </th:block>
+                <th>&sum;</th>
+                <th>#</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td>Gesamt</td>
+                <th:block th:each="task : ${tasks}">
+                    <td th:text="${#numbers.formatDecimal(groupResults.getTaskAvgPoints(task.id), 1, 2)}"></td>
+                </th:block>
+                <td th:text="${#numbers.formatDecimal(groupResults.getAvgPoints(), 1, 2)}"></td>
+                <td th:text="${groupResults.getParticipants()}"></td>
+            </tr>
+            <th:block th:each="group : ${groupResults.getGroups()}" th:if="${@accessChecker.hasAssessRight(exercise, group)}">
+                <tr>
+                    <td th:text="${group}"></td>
+                    <th:block th:each="task : ${tasks}">
+                        <td th:text="${#numbers.formatDecimal(groupResults.getGroupTaskAvgPoints(group, task.id), 1, 2)}"></td>
+                    </th:block>
+                    <td th:text="${#numbers.formatDecimal(groupResults.getGroupAvgPoints(group), 1, 2)}"></td>
+                    <td th:text="${groupResults.getGroupParticipants(group)}"></td>
+                </tr>
+            </th:block>
+            </tbody>
+        </table>
+    </div>
+
+    <div id="pointsOverview" th:replace="exam_fragments :: pointsOverview(${exercise}, ${examDetails.id})"></div>
+    <div id="gradeOverview" th:replace="exam_fragments :: gradeOverview(${exercise}, ${examDetails.id})"></div>
+    <div id="gradeTable" th:replace="exam_fragments :: gradeTable(${grades})"></div>
+
+</div>
+
+<div th:replace="main :: footer"></div>
+<script th:src="@{/js/Chart.min.js}"></script>
+<script th:src="@{/js/grade-overview.js}"></script>
+<script th:src="@{/js/points-overview.js}"></script>
+</body>
+</html>

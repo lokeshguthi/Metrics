@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="main :: headTag" th:title="Teams ändern ${exercise}">
+</head>
+<body>
+<div th:replace="main :: navBar"></div>
+
+<div class="container">
+
+    <p><a th:href="@{/exercise/{exid}/results(exid=${exercise})}">Zurück zur Punkteübersicht <span
+            th:text="${exercise}">SE1</span></a></p>
+    <h1>Teams für Übung <span th:text="${exercise}">SE1</span></h1>
+    <div th:replace="main :: errorMsg"></div>
+
+    <form class="form-horizontal" method="post" th:action="@{/exercise/{exid}/change-teams/submit(exid=${exercise})}">
+
+        <table class="table table-nonfluid">
+            <tr>
+                <th>Name</th>
+                <th>Gruppe</th>
+                <th>Team</th>
+            </tr>
+            <tr th:each="student : ${students}">
+                <td th:text="${student.getLastname() + ', ' +student.getFirstname()}"></td>
+                <td th:text="${student.getTeam().getGroup()}"></td>
+                <td>
+                    <input type="hidden" name="studentid" th:value="${student.getId()}" />
+                    <input type="text" size="5" name="team" th:value="${student.getTeam().getTeam()}" />
+                </td>
+            </tr>
+
+
+        </table>
+
+        <input type="submit" class="btn btn-primary" value="Speichern" />
+    </form>
+
+</div>
+
+<div th:replace="main :: footer"></div>
+</body>
+</html>

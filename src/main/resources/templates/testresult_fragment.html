@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Title</title>
+</head>
+<body>
+<th:block th:fragment="testresult(testresult)">
+    <!--@thymesVar id="testresult" type="de.tukl.softech.exclaim.data.Testresult"-->
+    <th:block th:unless="${testresult.getTimeDone()}">
+        <p>Test wird ausgeführt ...</p>
+    </th:block>
+    <th:block th:if="${testresult.getTimeDone()}">
+
+        <th:block th:unless="${testresult.compiled}">
+            <th:block th:if="${!testresult.missingFiles and !testresult.illegalFiles}">
+                <p>Fehler beim Kompilieren</p>
+            </th:block>
+            <th:block th:if="${testresult.missingFiles}">
+                <p>Es wurden nicht alle notwendigen Dateien hochgeladen.</p>
+            </th:block>
+            <th:block th:if="${testresult.illegalFiles}">
+                <p>Es wurden ungültige Dateien hochgeladen.</p>
+            </th:block>
+        </th:block>
+
+
+        
+        <th:block th:if="${testresult.internalError}">
+            <p>Interner Fehler</p>
+        </th:block>
+
+        <th:block th:if="${testresult.compiled and !testresult.internalError}">
+            <th:block th:if="${testresult.testsPassed == testresult.testsTotal}">
+                <p>Alle
+                    <th:block th:text="${testresult.testsTotal}"></th:block>
+                    Tests OK!
+                </p>
+            </th:block>
+
+            <th:block th:if="${testresult.testsPassed != testresult.testsTotal}">
+                Es wurden
+                <th:block th:text="${testresult.testsPassed}"></th:block>
+                von
+                <th:block th:text="${testresult.testsTotal}"></th:block>
+                Tests bestanden.
+            </th:block>
+        </th:block>
+
+        <a th:href="@{${testresult.linkTo()}}">Test-Details anzeigen</a>
+    </th:block>
+</th:block>
+
+<th:block th:fragment="testresultmetrics(testresult, testresultcolumn)">
+    <!--@thymesVar id="testresult" type="de.tukl.softech.exclaim.data.Testresult"-->
+    <th:block th:if="${testresultcolumn} == 'comments_number'">
+        <th:block th:text="${testresult.getCodeCommentsNumber()}"/>
+    </th:block>
+
+    <th:block th:if="${testresultcolumn} == 'loc_number'">
+        <th:block th:text="${testresult.getLinesOfCodeNumber()}"/>
+    </th:block>
+</th:block>
+
+</body>
+</html>

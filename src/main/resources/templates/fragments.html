@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Title</title>
+</head>
+<body>
+<div th:fragment="testResultDisplay(testResult, testResultDetails)">
+	<th:block th:if="${testResult}">
+	
+	    <strong th:text="${'Test der Version von ' + @format.date(testResult.getSnapshot()) + ' (#' + testResult.requestnr + ')' }">
+	    </strong>
+	
+	    <p th:unless="${testResult.getTimeDone()}">
+	        Test wird ausgeführt ...
+	    </p>
+	    <th:block th:if="${testResult.getTimeDone()}">
+	        <th:block th:unless="${testResultDetails}">
+	            <p>
+	                Der Testfall konnte nicht korrekt ausgeführt werden:
+	            </p>
+	            <pre th:text="${testResult.getResult()}"></pre>
+	        </th:block>
+	    </th:block>	
+	
+	    <th:block th:if="${testResultDetails}">	
+	
+	        <th:block th:unless="${testResult.compiled}">
+                <th:block th:if="${!testResult.missingFiles and !testResult.illegalFiles}">
+                    <p>Fehler beim Kompilieren:</p>
+
+                    <pre th:text="${testResultDetails.compile_error}"></pre>
+                </th:block>
+                <th:block th:if="${testResultDetails.missing_files}">
+                    <p>Es wurden nicht alle notwendigen Dateien hochgeladen.</p>
+                    <p>Fehlende Dateien:</p>
+                    <ul>
+                        <li th:each="file : ${testResultDetails.missing_files}">
+                            <p th:text="${file}"></p>
+                        </li>
+                    </ul>
+                </th:block>
+                <th:block th:if="${testResultDetails.illegal_files}">
+                    <p>Es wurden ungültige Dateien hochgeladen.</p>
+                    <p>Ungültige Dateien:</p>
+                    <ul>
+                        <li th:each="file : ${testResultDetails.illegal_files}">
+                            <p th:text="${file}"></p>
+                        </li>
+                    </ul>
+                </th:block>
+	        </th:block>
+
+
+	
+	        <th:block th:if="${testResultDetails.internal_error}">
+	            <h2><span class="glyphicon glyphicon-remove" style="color:#d33"></span> Interner Fehler in Ausführung:
+	            </h2>
+	            <pre th:text="${testResultDetails.internal_error}"></pre>
+	        </th:block>
+	
+	        <th:block th:if="${testResult.isCompiled()}">
+	            <p>Code kompiliert!</p>
+	
+	            <th:block th:if="${testResultDetails.tests != null and (not testResultDetails.tests.isEmpty())}">
+	                <h2>Test-Ergebnisse:</h2>
+	
+	                <th:block th:each="test: ${testResultDetails.tests}">
+	                    <h3>
+	                        <th:block th:if="${test.isSuccess()}">
+	                            <span class="glyphicon glyphicon-ok" style="color:#3d3"></span>
+	                        </th:block>
+	                        <th:block th:unless="${test.isSuccess()}">
+	                            <span class="glyphicon glyphicon-remove" style="color:#d33"></span>
+	                        </th:block>
+	                        <th:block th:text="${test.calculateNiceName()}"/>
+	                    </h3>
+	
+	                    <th:block th:unless="${test.isSuccess()}">
+	                        <pre th:text="${test.error}"></pre>
+	                        <th:block th:if="${test.expected}">
+	                            <div class="compare-results">
+	                                <table class="compare-table">
+	                                    <tr>
+	                                        <th>Erwartetes Ergebnis:</th>
+	                                        <th>Tatsächliches Ergebnis:</th>
+	                                    </tr>
+	                                    <tr>
+	                                        <td>
+	                                            <pre class="compare-results-left" th:text="${@format.addNewline(@format.characters(test.expected))}">
+	                                            </pre>
+	                                        </td>
+	                                        <td>
+	                                            <pre class="compare-results-right" th:text="${@format.addNewline(@format.characters(test.output))}" >
+	                                            </pre>
+	                                        </td>
+	                                    </tr>
+	                                </table>
+	                            </div>
+	                        </th:block>
+	                    </th:block>
+	                </th:block>
+	            </th:block>
+	        </th:block>
+	    </th:block>
+	</th:block>
+</div>
+
+<div class="testResultShortDisplay" th:fragment="testResultShortDisplay">
+    <th:block th:if="${assign.testResultDetails}">	
+        <th:block th:if="${assign.testResultDetails.tests != null and (not assign.testResultDetails.tests.isEmpty())}">
+            <th:block th:each="test: ${assign.testResultDetails.tests}">
+                <p>
+                    <th:block th:if="${test.isSuccess()}">
+                        <span class="glyphicon glyphicon-ok" style="color:#3d3"></span>
+                   </th:block>
+                   <th:block th:unless="${test.isSuccess()}">
+                       <span class="glyphicon glyphicon-remove" style="color:#d33"></span>
+                    </th:block>
+                    <th:block th:text="${test.calculateNiceName()}"/>
+                </p>
+            </th:block>
+        </th:block>
+    </th:block>
+ </div>
+
+<th:block th:fragment="filePreview(filename, rawFilename, fileType, langClass, filecontent, fileid)">
+    <h1 th:id="${rawFilename}">Datei <span th:text="${filename}">test.txt</span></h1>
+    <a class="dl-link"
+       th:href="@{/data/{exid}/{sid}/{gid}/{tid}/{aid}/{filename}(exid=${exercise},sid=${sheet},gid=${team.group},tid=${team.team},aid=${assignment},filename=${rawFilename})}">Download</a>
+    <th:block th:if="${fileType.name() == 'Text'}">
+        <div class="annotate-me" th:classappend="${hasEditRight}? editable : readonly">
+            <code class="code-snippet prettyprint linenums" th:classappend="${langClass}" th:utext="${filecontent}">
+            </code>
+            <input type="hidden" class="annotation-data"
+                   th:attr="data-exclaimContext=@{/},data-csrf=${_csrf.token},data-hasEditRight=${hasEditRight},data-exerciseId=${exercise},data-sheetId=${sheet},data-assignmentId=${assignment},data-groupId=${team.group},data-teamId=${team.team},data-fileid=${fileid}"/>
+        </div>
+    </th:block>
+    <div th:if="${fileType.name() == 'Image'}">
+        <img style="max-width: 100%;"
+             th:src="@{/data/{exid}/{sid}/{gid}/{tid}/{aid}/{filename}(exid=${exercise},sid=${sheet},gid=${team.group},tid=${team.team},aid=${assignment},filename=${rawFilename})}"/>
+    </div>
+    <div th:if="${fileType.name() == 'PDF'}">
+        <object width="100%" height="750px" type="application/pdf"
+                th:data="@{/data/{exid}/{sid}/{gid}/{tid}/{aid}/{filename}(exid=${exercise},sid=${sheet},gid=${team.group},tid=${team.team},aid=${assignment},filename=${rawFilename})}"
+                id="pdf-content"><p>Ihr Browser untertützt keine Vorschau für PDF-Dokumente. Sie können die Datei über den Link oben herunterladen.</p></object>
+    </div>
+    <th:block th:if="${fileType.name() == 'NoPreview'}">
+        <p>Keine Vorschau verfügbar.</p>
+    </th:block>
+</th:block>
+
+
+<th:block th:fragment="filePreview1(filename, rawFilename, fileType, langClass, filecontent, fileid)">
+    <h1><span th:text="${team1}">Fehler Team1</span></h1>
+    <a class="dl-link"
+       th:href="@{/data/{exid}/{sid}/{gid}/{tid}/{aid}/{filename}(exid=${exercise},sid=${sheet},gid=${team1.group},tid=${team1.team},aid=${assignment},filename=${rawFilename})}">Download</a>
+    <th:block th:if="${fileType.name() == 'Text'}">
+        <div class="annotate-me" th:classappend="${hasEditRight}? editable : readonly">
+            <code class="code-snippet prettyprint linenums" th:classappend="${langClass}" th:utext="${filecontent}">
+            </code>
+            <input type="hidden" class="annotation-data"
+                   th:attr="data-exclaimContext=@{/},data-csrf=${_csrf.token},data-hasEditRight=${hasEditRight},data-exerciseId=${exercise},data-sheetId=${sheet},data-assignmentId=${assignment},data-groupId=${team1.group},data-teamId=${team1.team},data-fileid=${fileid}"/>
+        </div>
+    </th:block>
+    <div th:if="${fileType.name() == 'Image'}">
+        <img style="max-width: 100%;"
+             th:src="@{/data/{exid}/{sid}/{gid}/{tid}/{aid}/{filename}(exid=${exercise},sid=${sheet},gid=${team1.group},tid=${team1.team},aid=${assignment},filename=${rawFilename})}"/>
+    </div>
+    <div th:if="${fileType.name() == 'PDF'}">
+        <object width="100%" height="750px" type="application/pdf"
+                th:data="@{/data/{exid}/{sid}/{gid}/{tid}/{aid}/{filename}(exid=${exercise},sid=${sheet},gid=${team1.group},tid=${team1.team},aid=${assignment},filename=${rawFilename})}"
+                id="pdf-content"><p>Ihr Browser untertützt keine Vorschau für PDF-Dokumente. Sie können die Datei über den Link oben herunterladen.</p></object>
+    </div>
+    <th:block th:if="${fileType.name() == 'NoPreview'}">
+        <p>Keine Vorschau verfügbar.</p>
+    </th:block>
+</th:block>
+
+
+<th:block th:fragment="filePreview2(filename, rawFilename, fileType, langClass, filecontent, fileid)">
+    <h1><span th:text="${team2}">Fehler Team2</span></h1>
+    <a class="dl-link"
+       th:href="@{/data/{exid}/{sid}/{gid}/{tid}/{aid}/{filename}(exid=${exercise},sid=${sheet},gid=${team1.group},tid=${team2.team},aid=${assignment},filename=${rawFilename})}">Download</a>
+    <th:block th:if="${fileType.name() == 'Text'}">
+        <div class="annotate-me" th:classappend="${hasEditRight}? editable : readonly">
+            <code class="code-snippet prettyprint linenums" th:classappend="${langClass}" th:utext="${filecontent}">
+            </code>
+            <input type="hidden" class="annotation-data"
+                   th:attr="data-exclaimContext=@{/},data-csrf=${_csrf.token},data-hasEditRight=${hasEditRight},data-exerciseId=${exercise},data-sheetId=${sheet},data-assignmentId=${assignment},data-groupId=${team2.group},data-teamId=${team2.team},data-fileid=${fileid}"/>
+        </div>
+    </th:block>
+    <div th:if="${fileType.name() == 'Image'}">
+        <img style="max-width: 100%;"
+             th:src="@{/data/{exid}/{sid}/{gid}/{tid}/{aid}/{filename}(exid=${exercise},sid=${sheet},gid=${team2.group},tid=${team2.team},aid=${assignment},filename=${rawFilename})}"/>
+    </div>
+    <div th:if="${fileType.name() == 'PDF'}">
+        <object width="100%" height="750px" type="application/pdf"
+                th:data="@{/data/{exid}/{sid}/{gid}/{tid}/{aid}/{filename}(exid=${exercise},sid=${sheet},gid=${team2.group},tid=${team2.team},aid=${assignment},filename=${rawFilename})}"
+                id="pdf-content"><p>Ihr Browser untertützt keine Vorschau für PDF-Dokumente. Sie können die Datei über den Link oben herunterladen.</p></object>
+    </div>
+    <th:block th:if="${fileType.name() == 'NoPreview'}">
+        <p>Keine Vorschau verfügbar.</p>
+    </th:block>
+</th:block>
+
+
+
+<table>
+    <tr th:fragment="assignmentRow(data, assign)" class="assignment-row">
+        <!--@thymesVar id="data" type="de.tukl.softech.exclaim.controllers.ExerciseController.OverviewDataForTeam"-->
+        <!--@thymesVar id="exercise" type="java.lang.String"-->
+        <!--@thymesVar id="sheet" type="java.lang.String"-->
+        <!--@thymesVar id="assign" type="de.tukl.softech.exclaim.controllers.ExerciseController.OverviewAssignmentData"-->
+        <td style="white-space: nowrap;" th:text="${assign.assignment.label}">
+        </td>
+        <td>
+            <div class="panel-group assignment-panel"
+                 th:attr="data-group=${data.team.getGroup()},
+                          data-team=${data.team.getTeam()},
+                          data-sheetId=${sheet},
+                          data-assignmentId=${assign.assignment.id},
+                          data-exerciseId=${exercise}">
+
+                <div class="panel panel-default uploads-box" th:attr="data-snapshot=${assign.snapshot}">
+                    <div class="panel-body">
+                        <ul>
+                            <li th:each="upload : ${assign.activeUploads()}">
+                                <a th:href="@{/exercise/{exid}/sheet/{sid}/assignment/{aid}/team/{gid}/{tid}/view/{filename}(exid=${exercise},sid=${sheet},gid=${upload.team.group},tid=${upload.team.team},aid=${upload.assignment},filename=${upload.internFilename})}" th:text="${upload.getFilename()}"></a>
+                                (
+                                <th:block th:if="${upload.uploaderStudentid}"
+                                          th:text="${'von ' + data.getStudentName(upload.uploaderStudentid)}"/>
+                                am
+                                <th:block th:text="${@format.date(upload.getUploadDate())}"/>
+                                )
+                                <button class="glyphicon glyphicon-trash btn-trash delete-file-button"
+                                        th:title="${upload.getFilename() + ' löschen'}"
+                                        th:attr="
+                                                            data-filename=${upload.getFilename()},
+                                                            data-uploaddate=${upload.getUploadDate()}"
+                                >
+                                </button>
+                            </li>
+                        </ul>
+                        <div th:unless="${assign.activeUploads().isEmpty()}">
+                            <a th:href="@{/exercise/{e}/sheet/{s}/assignment/{a}/team/{g}/{t}/view/{d}(e=${exercise}, s=${sheet}, a=${assign.assignment.id}, g=${data.team.getGroup()}, t=${data.team.getTeam()}, d=${@format.internalDateTime(assign.snapshot)})}">Dateien
+                                Anzeigen</a>
+
+                            <th:block th:if="${assign.annotationCount > 0 or assign.warningsCount > 0}"
+                                      th:utext="${'(' + @format.overviewAnnotationAndWarning(assign, false) + ')'}"/>
+                        </div>
+
+                        <div th:if="${assign.activeUploads().size() > 1}">
+                            <a th:href="@{/zip/{e}/{s}/{g}/{t}/{a}(e=${exercise}, s=${sheet}, a=${assign.assignment.id}, g=${data.team.getGroup()}, t=${data.team.getTeam()})}">Dateien
+                                als Zip-Archiv herunterladen.</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="assignment-controls">
+                    <div th:unless="${@accessChecker.hasAssessRight(exercise)}" th:remove="tag">
+                        <div th:replace="fragments :: dropzoneDisplay">
+                        </div>
+	                    <div th:replace="fragments :: testResultOverviewOrStartTestBox" th:remove="tag">
+	                    </div>
+                    </div>
+                    <div th:if="${@accessChecker.hasAssessRight(exercise)}" th:remove="tag">
+                        <div>
+	                        <div th:replace="fragments :: testResultOverviewOrStartTestBox" th:remove="tag">
+	                        </div>
+                            <div th:replace="fragments :: dropzoneDisplay">
+	                        </div>
+	                    </div>
+	                    <div class="scrollableCustom">
+	                        <div th:replace="fragments :: testResultShortDisplay"></div>
+	                    </div>
+                    </div>
+                </div>
+                <div class="papierkorb-box">
+                    <div th:unless="${assign.deletedUploads().isEmpty()}"
+                         th:with="delId=${'delup-' + data.team.getGroup() + '-' + data.team.getTeam() + '-' + assign.assignment.id}"
+                         class="panel panel-default">
+                        <div class="panel-heading"
+                             data-toggle="collapse"
+                             th:href="${'#' + delId}"
+                             th:attr="aria-controls=${delId},aria-expand=false"
+                        >
+                            <a>Papierkorb anzeigen/verbergen <th:block th:if="${assign.deletedAnnotationCount() > 0 or assign.deletedWarningsCount() > 0}" th:utext="${'(' +  @format.overviewAnnotationAndWarning(assign, true) + ') '}"><span></span></th:block><span class="caret"/></a>
+                        </div>
+                        <div class="panel-body collapse" th:id="${delId}">
+                            <ul>
+                                <li th:each="upload : ${assign.deletedUploadsWithAnnotations()}">
+                                    <a th:href="@{/exercise/{exid}/sheet/{sid}/assignment/{aid}/team/{gid}/{tid}/view/{filename}(exid=${exercise},sid=${sheet},gid=${upload.upload.team.group},tid=${upload.upload.team.team},aid=${upload.upload.assignment},filename=${upload.upload.internFilename})}" th:text="${upload.upload.getFilename()}"></a>
+                                    (hochgeladen von
+                                    <th:block th:text="${data.getStudentName(upload.upload.uploaderStudentid)}"/>
+                                    am
+                                    <th:block th:text="${@format.date(upload.upload.getUploadDate())}"/>
+                                    ,
+                                    gelöscht von
+                                    <th:block th:text="${data.getStudentName(upload.upload.deleterStudentid)}"/>
+                                    am
+                                    <th:block th:text="${@format.date(upload.upload.getDeleteDate())}"/>
+                                    <th:block th:if="${upload.annotations.size() > 0 or upload.warnings.size() > 0}" th:utext="${' , ' + @format.annotationAndWarningCount(upload.annotations.size(), upload.warnings.size(), upload.unread ? 1 : 0)}"/>
+                                    )
+                                </li>
+                            </ul>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </td>
+        <td>
+            <a th:if="${@accessChecker.hasAssessRight(exercise, data.team.getGroup())}"
+               th:href="@{/exercise/{exid}/sheet/{sheet}/assessment/{group}/{team}(exid=${exercise},sheet=${sheet},group=${data.team.getGroup()},team=${data.team.getTeam()})}"
+            th:text="${@format.points(assign.points) + '/' + @format.points(assign.assignment.getMaxpoints())}"></a>
+            <strong th:unless="${@accessChecker.hasAssessRight(exercise, data.team.getGroup())}"
+                    th:text="${@format.points(assign.points) + '/' + @format.points(assign.assignment.getMaxpoints())}"></strong>
+        </td>
+    </tr>
+</table>
+
+<div th:fragment="testResultOverviewOrStartTestBox">
+    <div th:if="${assign.testExists}" class="test-box">
+        <form class="test-form" method="post" th:action="@{/exercise/{e}/sheet/{s}/{a}/test(e=${exercise},s=${sheet},a=${assign.assignment.id})}">
+            <input type="hidden" name="group" th:value="${data.team.group}"/>
+            <input type="hidden" name="team" th:value="${data.team.team}"/>
+            <input type="hidden" name="snapshot" th:value="${assign.snapshot}"/>
+            <button class="btn btn-default test-button" type="submit">Tests starten</button>
+        </form>
+        <div class="test-results"> 
+            <div th:unless="${assign.testresult}">
+                <p>Noch keine Tests gestartet.</p>
+                <p th:if="${@accessChecker.hasAssessRight(exercise, data.team.getGroup())}">
+                    <a th:href="@{/exercise/{e}/sheet/{s}/{a}/team/{g}/{t}/test/(e=${exercise}, s=${sheet}, a=${assign.assignment.id}, g=${data.team.getGroup()}, t=${data.team.getTeam()})}">Versionen
+                        anzeigen</a>
+                </p>
+            </div> 
+            <div th:if="${assign.testresult}">
+                <p th:unless="${assign.isTestResultUpToDate()}">
+                    (Test-Ergebnis bezieht sich auf Version
+                    <th:block th:text="${@format.date(assign.testresult.snapshot)}"/>
+                    )
+                </p> 
+                <th:block th:replace="testresult_fragment :: testresult(${assign.testresult})"/>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:fragment="dropzoneDisplay">
+    <form method="post" enctype="multipart/form-data"
+          th:action="@{/exercise/{e}/sheet/{s}/upload(e=${exercise},s=${sheet})}"
+          th:id="${'dropzoneA' + assign.assignment.id + 'G' + data.team.getGroup() + 'T' + data.team.getTeam()}"
+          th:attr="class = ${isTutor} ? 'dropzone form-horizontal dz-customAdmin' : 'dropzone form-horizontal dz-custom'">
+        <input type="hidden" name="assignment" th:value="${assign.assignment.id}"/>
+        <input type="hidden" name="group" th:value="${data.team.getGroup()}"/>
+        <input type="hidden" name="team" th:value="${data.team.getTeam()}"/>
+        <div class="fallback">
+            <input type="file" name="file" class="form-control"/>
+            <input type="submit" class="btn btn-primary" value="upload"/>
+        </div>
+    </form>
+</div>
+
+<div th:fragment="testStatistics(exid, sheetid, assignid, groupid, teamid, requestnr)">
+    <h2>Test Statistiken</h2>
+    <div class="test-statistics">
+        <input type="hidden" class="statistics-data"
+                th:attr="data-exclaimContext=@{/},data-csrf=${_csrf.token},data-exerciseId=${exid},data-sheetId=${sheetid},data-assignmentId=${assignid},data-groupId=${groupid},data-teamId=${teamid},data-requestnr=${requestnr}"/>
+        <div id="test-statistics-message"></div>
+        <div class="test-statistics-chart">
+            <canvas id="test-statistics-canvas" width="200" height="200"></canvas>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

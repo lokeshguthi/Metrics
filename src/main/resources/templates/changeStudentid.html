@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="main :: headTag">
+</head>
+<body>
+<div th:replace="main :: navBar"></div>
+
+<div class="container">
+    <div>
+        <div th:text="${message}"></div>
+        <form method="post" th:action="@{/admin/changeStudentid}">
+            <div class="form-group">
+                <label for="old-id">Alte Matrikelnummer: </label>
+                <input id="old-id" name="oldId" type="text" size="6"/>
+            </div>
+            <div class="form-group">
+                <label for="new-id">Neue Matrikelnummer: </label>
+                <input id="new-id" name="newId" type="text" size="6"/>
+            </div>
+            <div class="form-group text-right btn-toolbar">
+                <button class="btn btn-success" type="submit" name="submit">Matrikelnummer ändern</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div th:replace="main :: footer"></div>
+</body>
+</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="main :: headTag">
+</head>
+<body>
+<div th:replace="main :: navBar"></div>
+
+<div class="container">
+    <p><a th:href="@{/exercise/{exid}/exam/admin(exid=${exercise})}">Zurück zur Klausurverwaltung</a></p>
+    <h1 th:text="${'Notenschlüssel für Klausur: ' + exam}">Notenschlüssel</h1>
+    <div th:replace="main :: errorMsg"></div>
+    <div id="examgradetable">
+        <table class="table">
+            <tr>
+                <th>Note</th>
+                <th>Mindestpunktzahl</th>
+                <th>Funktionen</th>
+            </tr>
+            <tr th:each="grade : ${grades}">
+                <td th:text="${grade.grade}">1</td>
+                <td th:text="${grade.minPoints}">1.0</td>
+                <td><form class="form-inline" onsubmit="return confirm('Note wirklich löschen?');" method="post" th:action="@{/exercise/{exid}/exam/{eid}/grade/{gid}/delete(exid=${exercise},eid=${exam},gid=${grade.grade})}">
+                    <input type="submit" class="btn btn-default" value="löschen"/>
+                </form> </td>
+            </tr>
+        </table>
+    </div>
+    <div id="examgradeform">
+        <form class="form-horizontal" method="post" th:action="@{/exercise/{exid}/exam/{eid}/grade(exid=${exercise},eid=${exam})}">
+            <div class="form-group">
+                <label for="grade" class="col-sm-2 control-label">Note</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="grade" name="grade"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="minPoints" class="col-sm-2 control-label">Mindestpunktzahl</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="minPoints" name="minPoints"/>
+                </div>
+            </div>
+            <div class="col-sm-offset-2 col-sm-10">
+                <input type="submit" class="btn btn-primary" value="erstellen"/>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div th:replace="main :: footer"></div>
+</body>
+</html>

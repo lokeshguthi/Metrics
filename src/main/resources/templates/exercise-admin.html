@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="main :: headTag">
+</head>
+<body>
+<div th:replace="main :: navBar"></div>
+
+<div class="container">
+    <p><a th:href="@{/exercise/{exid}(exid=${exercise})}">Zurück zu Übung <span th:text="${exercise}">SE1</span></a></p>
+    <h1>Verwaltung der Übungsblätter</h1>
+    <div th:replace="main :: errorMsg"></div>
+    <div id="sheettable">
+        <table class="table">
+            <tr>
+                <th>ID</th>
+                <th>Bezeichnung</th>
+                <th>Funktionen</th>
+            </tr>
+            <tr th:each="sheet : ${sheets}">
+                <td th:text="${sheet.id}">1</td>
+                <td th:text="${sheet.label}">Übungsblatt 1</td>
+                <td>
+                    <a class="btn btn-default" th:href="@{/exercise/{exid}/sheet/{sid}/admin(exid=${exercise},sid=${sheet.id})}">Verwalten</a>
+                    <form class="form-inline" style="display: inline-block" onsubmit="return confirm('Übungsblatt wirklich löschen?');" method="post" th:action="@{/exercise/{exid}/sheet/{sid}/delete(exid=${exercise},sid=${sheet.id})}">
+                        <input type="submit" class="btn btn-default" value="löschen"/>
+                    </form>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div id="sheetform">
+        <form class="form-horizontal" method="post" th:action="@{/exercise/{exid}/sheet/(exid=${exercise})}">
+            <div class="form-group">
+                <label for="id" class="col-sm-2 control-label">ID</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="id" name="id"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="label" class="col-sm-2 control-label">Bezeichnung</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="label" name="label"/>
+                </div>
+            </div>
+            <div class="col-sm-offset-2 col-sm-10">
+                <input type="submit" class="btn btn-primary" value="erstellen"/>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div th:replace="main :: footer"></div>
+</body>
+</html>

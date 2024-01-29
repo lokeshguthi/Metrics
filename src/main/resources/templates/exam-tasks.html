@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="main :: headTag">
+</head>
+<body>
+<div th:replace="main :: navBar"></div>
+
+<div class="container">
+    <p><a th:href="@{/exercise/{exid}/exam/admin(exid=${exercise})}">Zurück zur Klausurverwaltung</a></p>
+    <h1 th:text="${'Verwaltung der Aufgaben für Klausur: ' + exam}">Verwaltung der Klausuraufgaben</h1>
+    <div th:replace="main :: errorMsg"></div>
+    <div id="examtasktable">
+        <table class="table">
+            <tr>
+                <th>ID</th>
+                <th>Maximale Punktzahl</th>
+                <th>Funktionen</th>
+            </tr>
+            <tr th:each="task : ${tasks}">
+                <td th:text="${task.id}">1</td>
+                <td th:text="${task.maxPoints}">1.0</td>
+                <td><form class="form-inline" onsubmit="return confirm('Aufgabe wirklich löschen?');" method="post" th:action="@{/exercise/{exid}/exam/{eid}/task/{tid}/delete(exid=${exercise},eid=${exam},tid=${task.id})}">
+                    <input type="submit" class="btn btn-default" value="löschen"/>
+                </form> </td>
+            </tr>
+        </table>
+    </div>
+    <div id="examtaskform">
+        <form class="form-horizontal" method="post" th:action="@{/exercise/{exid}/exam/{eid}/task(exid=${exercise},eid=${exam})}">
+            <div class="form-group">
+                <label for="id" class="col-sm-2 control-label">ID</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="id" name="id"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="maxPoints" class="col-sm-2 control-label">Maximale Punktzahl</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="maxPoints" name="maxPoints"/>
+                </div>
+            </div>
+            <div class="col-sm-offset-2 col-sm-10">
+                <input type="submit" class="btn btn-primary" value="erstellen"/>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div th:replace="main :: footer"></div>
+</body>
+</html>

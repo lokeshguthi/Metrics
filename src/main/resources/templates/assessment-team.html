@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="main :: headTag">
+</head>
+<body>
+<div th:replace="main :: navBar"></div>
+
+<div th:replace="main :: errorMsg"></div>
+
+<div class="container">
+    <p><a th:href="@{/exercise/{exid}(exid=${exercise})}">Zurück zu Übung <span th:text="${exercise}">SE1</span></a> > <a th:href="@{/exercise/{exid}/sheet/{sid}/assessment(exid=${exercise},sid=${sheet})}">Punktevergabe Blatt<span th:text="${sheet}"></span></a></p>
+    <h1>Punktevergabe Blatt <span th:text="${sheet}">02</span>, Gruppe <span th:text="${team.group}">1</span>, Team <span th:text="${team.team}"></span></h1>
+    <div id="entryform">
+        <form class="form-horizontal" th:action="@{/exercise/{exid}/sheet/{sid}/result(exid=${exercise},sid=${sheet})}" method="post">
+            <input type="hidden" name="group" th:value="${team.group}"/>
+            <input type="hidden" name="team" th:value="${team.team}"/>
+            <table class="table">
+                <tr>
+                    <th th:if="${isAssistant}">Matrikelnummer</th>
+                    <th>Name</th>
+                    <th>Δ</th>
+                    <th>Kommentar</th>
+                </tr>
+                <tr th:each="stud : ${students}">
+                    <td th:if="${isAssistant}" th:text="${stud.id}">301010</td>
+                    <td th:text="|${stud.firstname} ${stud.lastname}|">Max Mustermann</td>
+                    <td><input class="form-control" type="text" pattern="-?[0-9]+(\.[0-9]*)?" required="required" title="Bonus oder Malus Punkte (Zahl mit Dezimalpunkt)" th:value="${stud.delta}" th:name="|delta-${stud.id}|"/></td>
+                    <td><input class="form-control" type="text" th:value="${stud.comment}" th:name="|comment-${stud.id}|"/></td>
+                </tr>
+            </table>
+            <div class="form-group" th:each="assignment : ${assignments}">
+                <label class="col-sm-2 control-label" for="asgn" th:for="|asgn-${assignment.id}|" th:text="|${assignment.label} (${assignment.maxpoints})|"></label>
+                <div class="col-sm-2">
+                    <input class="form-control" type="text" th:value="${assignment.points}" id="asgn" name="asgn" th:id="|asgn-${assignment.id}|" th:name="|asgn-${assignment.id}|"/>
+                </div>
+                <div class="col-sm-2 txtAsBtn">
+                    <a th:href="@{/exercise/{exid}/sheet/{sid}/assignment/{aid}/team/{gid}/{tid}/view/{date}(exid=${exercise},sid=${sheet},aid=${assignment.id},gid=${team.group},tid=${team.team}, date=${@format.internalDateTime(assignment.snapshot)})}">[Abgaben anzeigen]</a>
+                </div>
+                <div class="col-sm-2">
+                    <a href="#" class="btn btn-default" th:onclick="'insertLink(\'markdown-editor\', \'' + @{/exercise/{exid}/sheet/{sid}/assignment/{aid}/team/{gid}/{tid}/view/{date}(exid=${exercise},sid=${sheet},aid=${assignment.id},gid=${team.group},tid=${team.team},date=${@format.internalDateTime(assignment.snapshot)})} + '\');'">Link einfügen</a>
+                </div>
+                <div class="col-sm-2 txtAsBtn"><span th:text="${assignment.testsPassed}">1</span> von <span th:text="${assignment.testsTotal}"></span> Tests bestanden</div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label" for="comment">Kommentar</label>
+                <div class="col-sm-10">
+                    <textarea class="form-control" rows="20" id="markdown-editor" name="comment" th:text="${comment}"></textarea>
+                    <p>
+                        <small>Zum Formatieren wird <a href="https://commonmark.org/help/">Markdown</a> unterstützt.</small>
+                    </p>
+                </div>
+            </div>
+            <div class="form-group text-right" style="padding: 10px">
+                <label class=" control-label" for="hidden">Kommentar und Dateikommentare für Studenten verbergen: </label>
+                <input type="checkbox" id="hidden" name="hidden" th:checked="${hidden}"/>
+            </div>
+            <div class="form-group text-right">
+                <input type="submit" class="btn btn-primary col-sm-offset-3 col-sm-3" name="save" value="speichern"/>
+                <input type="submit" class="btn btn-success col-sm-offset-3 col-sm-3" name="save-continue" value="speichern und weiter"/>
+            </div>
+        </form>
+        <div class="panel panel-default">
+            <div class="panel-body" id="markdown-preview" th:utext="${comment_html}">
+            </div>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab">
+                <h3 class="pangel-title">Feedback Uploads</h3>
+            </div>
+            <div class="panel-body">
+                <table class="table">
+                    <tr>
+                        <th>Dateiname</th>
+                        <th>Funktionen</th>
+                    </tr>
+                    <tr th:each="upload : ${feedbackuploads}">
+                        <td><a th:href="@{/data/{exid}/{sid}/{gid}/{tid}/{feedbacksub}/{filename}(exid=${exercise},sid=${sheet},gid=${team.group},tid=${team.team},feedbacksub=${T(de.tukl.softech.exclaim.utils.Constants).FEEDBACK_SUB},filename=${upload})}" th:text="${upload}">test.txt</a></td>
+                        <td>
+                            <form style="display: inline;" th:action="@{/exercise/{exid}/sheet/{sid}/team/{gid}/{tid}/feedback/{filename}/delete(exid=${exercise},sid=${sheet},gid=${team.group},tid=${team.team},filename=${upload})}" method="post" onsubmit="return confirm('Upload wirklich löschen?');">
+                                <input type="submit" class="btn btn-default" value="löschen"/>
+                            </form>
+                            <a href="#" class="btn btn-default" th:onclick="'insertLink(\'markdown-editor\', \'' + @{/data/{exid}/{sid}/{gid}/{tid}/{feedbacksub}/{filename}(exid=${exercise},sid=${sheet},gid=${team.group},tid=${team.team},feedbacksub=${T(de.tukl.softech.exclaim.utils.Constants).FEEDBACK_SUB},filename=${upload})} + '\');'">Link einfügen</a>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <form method="post" enctype="multipart/form-data"
+              th:action="@{/exercise/{exid}/sheet/{sid}/feedback(exid=${exercise},sid=${sheet})}"
+              th:id="${'dropzone-' + team.group  + '-' + team.team}"
+              class="dropzone form-horizontal">
+            <input type="hidden" name="group" th:value="${team.group}"/>
+            <input type="hidden" name="team" th:value="${team.team}"/>
+            <div class="fallback">
+                <input type="file" name="file" class="form-control"/>
+                <input type="submit" class="btn btn-primary" value="upload"/>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div th:replace="main :: footer"></div>
+</body>
+</html>

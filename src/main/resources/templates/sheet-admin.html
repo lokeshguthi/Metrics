@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="main :: headTag">
+</head>
+<body>
+<div th:replace="main :: navBar"></div>
+
+<div class="container">
+    <p><a th:href="@{/exercise/{exid}/admin(exid=${exercise})}">Zurück zur Verwaltung der Übungsblätter für <span th:text="${exercise}">SE1</span></a></p>
+    <h1>Verwaltung der Aufgaben</h1>
+    <div th:replace="main :: errorMsg"></div>
+    <div id="assignmenttable">
+        <table class="table">
+            <tr>
+                <th>ID</th>
+                <th>Bezeichnung</th>
+                <th>Maximalpunktzahl</th>
+                <th>Statistiken anzeigen</th>
+                <th>Funktionen</th>
+            </tr>
+            <tr th:each="assign : ${assignments}">
+                <td th:text="${assign.id}">1</td>
+                <td th:text="${assign.label}">Blatt 1</td>
+                <td th:text="${assign.maxpoints}">10</td>
+                <td th:utext="${@format.booleanSymbol(assign.statistics)}"></td>
+                <td><form class="form-inline" onsubmit="return confirm('Aufgabe wirklich löschen?');" method="post" th:action="@{/exercise/{exid}/sheet/{sid}/assignment/{aid}/delete(exid=${exercise},sid=${sheet},aid=${assign.id})}">
+                    <input type="submit" class="btn btn-default" value="löschen"/>
+                </form> </td>
+            </tr>
+        </table>
+    </div>
+    <div id="assignmentform">
+        <form class="form-horizontal" method="post" th:action="@{/exercise/{exid}/sheet/{sid}/assignment(exid=${exercise},sid=${sheet})}">
+            <div class="form-group">
+                <label for="id" class="col-sm-2 control-label">ID</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="id" name="id"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="label" class="col-sm-2 control-label">Bezeichnung</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="label" name="label"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="maxpoints" class="col-sm-2 control-label">Maximalpunktzahl</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="maxpoints" name="maxpoints"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="statistics" class="col-sm-2 control-label">Statistiken anzeigen</label>
+                <div class="col-sm-10">
+                    <input type="checkbox" class="form-control" id="statistics" name="statistics"/>
+                </div>
+            </div>
+            <div class="col-sm-offset-2 col-sm-10">
+                <input type="submit" class="btn btn-primary" value="erstellen"/>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div th:replace="main :: footer"></div>
+</body>
+</html>

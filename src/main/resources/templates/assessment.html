@@ -1,0 +1,78 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="main :: headTag">
+</head>
+<body>
+<div th:replace="main :: navBar"></div>
+
+<div class="container">
+    <p><a th:href="@{/exercise/{exid}(exid=${exercise})}">Zurück zu Übung <span th:text="${exercise}"></span></a></p>
+    <h1>Punktevergabe Blatt <span th:text="${sheet}">02</span></h1>
+    <div id="resultstable">
+        <table class="table">
+            <tr>
+                <th>Team</th>
+                <th th:each="assignment : ${assignments}"><span th:text="${assignment.label}">Blatt 02</span> (<span th:text="${assignment.maxpoints}">10</span>)</th>
+                <th>Kommentar versteckt</th>
+                <th></th>
+            </tr>
+            <tr th:each="team : ${teams}">
+                <td><span th:text="${team.group}">1</span>|<span th:text="${team.team}">3</span></td>
+                <td th:each="assign : ${assignments}" th:with="results = ${allTeamsResults.containsKey(team) ? allTeamsResults.get(team).get(assign.id) : null}
+                                                               , uploads = ${allTeamsTotalUploads.containsKey(team) ? allTeamsTotalUploads.get(team).get(assign.id) : null}
+                                                               , testresults = ${allTeamsTestresults.containsKey(team) ? allTeamsTestresults.get(team).get(assign.id) : null}">
+                    <span th:text="${results == null} ? '0.0' : ${results[0].points}"></span>
+                    <div th:if="${uploads != null}" 
+                         th:attr="class = ${uploads[0].totalUploadsNo != 0} ? 'progress progressCustom'
+                                 , title = ${uploads[0].totalUploadsNo == 0} 
+                                             ? 'Es wurden keine Dateien hochgeladen und getestet' 
+                                             : (${testresults != null && testresults[0].compiled} 
+                                                  ? (${testresults[0].testsPassed + ' von ' + testresults[0].testsTotal + ' Tests bestanden, ' + uploads[0].totalUploadsNo + ' Dateien hochgeladen'}) 
+                                                  : ${uploads[0].totalUploadsNo + ' Dateien hochgeladen, aber Fehler beim kompilieren!'})">
+                         <div role="progressbar" aria-valuemin="0" 
+                              th:attr="class = ${testresults == null} ? 'progress-bar' : (${testresults[0].compiled} ? 'progress-bar' : 'progress-bar progress-bar-danger') 
+                                      , aria-valuenow = ${testresults == null} ? '0' : ${testresults[0].testsPassed}
+                                      , aria-valuemax = ${testresults == null} ? '100' : ${testresults[0].testsTotal}
+                                      , style=${testresults == null} 
+                                            ? 'width:0%' 
+                                            : 'width:' + (${testresults[0].compiled} 
+                                                             ? ((${testresults[0].testsPassed} / ${(testresults[0].testsTotal == 0) 
+                                                                   ? 1 
+                                                                   : testresults[0].testsTotal} * 100.0) + '%') : '100.0%')">
+                         </div>
+                    </div>
+                </td>
+                <td>
+                    <div align="center" style="width: 10em">
+                        <span  th:if="${commentHidden.get(team) != null and commentHidden.get(team)}" class="glyphicon glyphicon-ok" aria-label="Ja" aria-hidden="true"></span>
+                    </div>
+                </td>
+                <td><a class="btn btn-default" th:href="@{/exercise/{exid}/sheet/{sid}/assessment/{group}/{team}(exid=${exercise},sid=${sheet},group=${team.group},team=${team.team})}">ändern</a></td>
+            </tr>
+        </table>
+    </div>
+    <div>
+        <h3>Übungsstatistiken: </h3>
+        <div class="progress">
+            <div class="progress-bar" role="progressbar" th:attr="style='width:' + ${compiledPortion}">
+              <span th:text="${compiledPortion}">-</span> Kompiliert
+            </div>
+            <div class="progress-bar progress-bar-danger" role="progressbar" th:attr="style='width:' + ${notCompiledPortion}">
+              <span th:text="${notCompiledPortion}">-</span> mit Fehler
+            </div>
+        </div>
+        <div class="progress">
+            <div class="progress-bar" role="progressbar" th:attr="style='width:' + ${testsPassedPortion}">
+              <span th:text="${testsPassedPortion}">-</span> Tests bestanden
+            </div>
+            <div class="progress-bar progress-bar-danger" role="progressbar" th:attr="style='width:' + ${testsNotPassedPortion}">
+              <span th:text="${testsNotPassedPortion}">-</span> Tests fehlgeschlagen
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="main :: footer"></div>
+</body>
+</html>

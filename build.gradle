@@ -1,0 +1,88 @@
+buildscript {
+	ext {
+		springBootVersion = '2.1.1.RELEASE'
+	}
+	repositories {
+		mavenCentral()
+	}
+    dependencies {
+   		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+   	}
+}
+
+plugins {
+    id "org.flywaydb.flyway" version "5.2.4"
+	id 'org.springframework.boot' version '2.1.5.RELEASE'
+}
+
+flyway {
+    driver = 'org.h2.Driver'
+    url = 'jdbc:h2:file:./exclaim_dev.db;MVCC=FALSE'
+    user = 'sa'
+    password = ''
+	table = 'schema_version'
+}
+
+
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'maven-publish'
+
+
+version = '0.1.0'
+group = 'de.tukl.softech'
+sourceCompatibility = 1.8
+
+repositories {
+	mavenCentral()
+	flatDir {
+		dirs './dependencies/Optimus/target/'
+	}
+}
+
+
+dependencies {
+	compile('org.flywaydb:flyway-core')
+	compile('org.springframework.boot:spring-boot-starter-security')
+	compile('org.springframework.boot:spring-boot-starter-thymeleaf')
+	compile('org.thymeleaf.extras:thymeleaf-extras-springsecurity4:3.0.4.RELEASE')
+	compile('org.springframework.boot:spring-boot-starter-web')
+	compile('org.springframework.boot:spring-boot-starter-websocket')
+	compile('org.springframework.boot:spring-boot-starter-mail')
+	compile('org.springframework.security:spring-security-messaging')
+	compile('org.springframework.boot:spring-boot-starter-jdbc')
+	compile('org.springframework.boot:spring-boot-devtools')
+	compile('joda-time:joda-time')
+	compile('com.vladsch.flexmark:flexmark-all:0.27.0')
+	compile('com.opencsv:opencsv:4.0')
+	compile 'com.google.guava:guava:23.0'
+	compile('io.prometheus:simpleclient:0.0.26')
+	compile('io.prometheus:simpleclient_servlet:0.0.26')
+	compile('org.jasypt:jasypt:1.9.3')
+	compile('org.tuckey:urlrewritefilter:4.0.4')
+	compile('com.github.javafaker:javafaker:1.0.1')
+	runtime('com.h2database:h2:1.4.200')
+	testCompile('org.springframework.boot:spring-boot-starter-test')
+	testCompile('org.springframework.security:spring-security-test')
+
+    // webjars
+    compile group: 'org.webjars.npm', name: 'bootstrap', version: '3.3.0'
+    compile group: 'org.webjars.npm', name: 'jquery', version: '2.1.1'
+    compile group: 'org.webjars.npm', name: 'monaco-editor', version: '0.10.1'
+
+	compile group: 'de.softech', name: 'Optimus', version: '1.0-SNAPSHOT'
+	compile group: 'com.datumbox', name: 'lpsolve', version: '5.5.2.0'
+
+
+    // migrate to spring 2
+//    runtime("org.springframework.boot:spring-boot-properties-migrator")
+}
+
+processResources {
+    from ('_docs/') {
+        into 'static/docs'
+    }
+}

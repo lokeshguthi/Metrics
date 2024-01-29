@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="main :: headTag">
+</head>
+<body>
+<div th:replace="main :: navBar"></div>
+
+<div class="container">
+    <a th:href="@{admin/changeStudentid}" >Matrikelnummer ändern</a>
+
+    <div>
+        <div th:if="${message}" th:text="${message}" class="alert alert-danger"></div>
+        <form method="post" th:action="@{/admin/query}">
+            <input type="hidden" name="expected-updates" id="expected-updates" value="0" />
+            <div class="form-group">
+                <label for="query-editor">SQL query</label>
+                <textarea class="form-control" rows="5" id="query-editor" name="query" th:text="${query}"></textarea>
+            </div>
+            <div class="form-group text-right btn-toolbar">
+                <button class="btn btn-danger" type="submit" name="submit" id="submit-update" th:formaction="@{/admin/update}">Submit Update</button>
+                <button class="btn btn-success" type="submit" name="submit">Submit Query</button>
+            </div>
+        </form>
+    </div>
+    <div th:if="${columns != null}">
+        <table class="table" id="sqlresults" data-toggle="table" data-search="true">
+            <thead>
+                <tr>
+                    <th th:each="column : ${columns}" th:text="${column}" class="export-column">ID</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="row : ${rows}">
+                    <td th:each="column : ${columns}" th:text="${row.get(column)}">1</td>
+                </tr>
+            </tbody>
+        </table>
+        <div th:if="${rows.isEmpty()}"
+             class="alert alert-info" role="alert">
+            Empty Result!
+        </div>
+    </div>
+</div>
+
+<div th:replace="main :: footer"></div>
+<script th:src="@{/js/datatables.min.js}"></script>
+<script th:inline="javascript">
+    $(document).ready( function () {
+        $('#sqlresults').DataTable({
+            paging: false,
+            info: false,
+            dom: 'fBrtip',
+            buttons: [
+                {
+                    extend: 'copyHtml5',
+                    exportOptions: {
+                        columns: [ '.export-column' ]
+                    },
+                    title: null
+                },
+                {
+                    extend: 'csvHtml5',
+                    exportOptions: {
+                        columns: [ '.export-column' ]
+                    }
+                }
+            ]
+        });
+    } );
+
+    $("#submit-update").click(function(event) {
+        var result = window.prompt("Are you SURE you want to perform this database update? If so enter here the expected number of affected rows:", "");
+        if (!result) {
+            event.preventDefault();
+            return false;
+        }
+        $("#expected-updates").attr('value', result);
+    });
+</script>
+</body>
+</html>

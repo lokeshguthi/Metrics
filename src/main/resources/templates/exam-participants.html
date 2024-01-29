@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="main :: headTag">
+</head>
+<body>
+<div th:replace="main :: navBar"></div>
+
+<div class="container">
+    <p><a th:href="@{/exercise/{exid}/exam/admin(exid=${exercise})}">Zurück zur Klausurverwaltung</a></p>
+    <h1 th:text="${'Teilnehmer der Klausur: ' + exam}">Klausurteilnehmer</h1>
+    <table>
+        <tr>
+            <td th:if="${examDetails.registrationOpen}">Status der Klausuranmeldung für Studierende: geöffnet</td>
+            <td th:unless="${examDetails.registrationOpen}">Status der Klausuranmeldung für Studierende: geschlossen</td>
+            <td th:if="${examDetails.registrationOpen}">
+                    <form class="form-inline" style="display: inline-block" method="post" th:action="@{/exercise/{exid}/exam/{eid}/registrationStatus(exid=${exercise},eid=${exam})}">
+                        <input type="hidden" value="false" name="registration"/>
+                        <input type="submit" class="btn btn-default btn-xs" value="ändern"/>
+                    </form>
+            </td>
+            <td th:unless="${examDetails.registrationOpen}">
+                <form class="form-inline" style="display: inline-block" method="post" th:action="@{/exercise/{exid}/exam/{eid}/registrationStatus(exid=${exercise},eid=${exam})}">
+                    <input type="hidden" value="true" name="registration"/>
+                    <input type="submit" class="btn btn-default btn-xs" value="ändern"/>
+                </form>
+            </td>
+        </tr>
+        <tr>
+            <td th:if="${examDetails.showResults}">Status der Klausurergebnisse für Studierende: veröffentlicht</td>
+            <td th:unless="${examDetails.showResults}">Status der Klausurergebnisse für Studierende: nicht veröffentlicht</td>
+            <td th:if="${examDetails.showResults}">
+                <form class="form-inline" style="display: inline-block" method="post" th:action="@{/exercise/{exid}/exam/{eid}/showResults(exid=${exercise},eid=${exam})}">
+                    <input type="hidden" value="false" name="showResults"/>
+                    <input type="submit" class="btn btn-default btn-xs" value="ändern"/>
+                </form>
+            </td>
+            <td th:unless="${examDetails.showResults}">
+                <form class="form-inline" style="display: inline-block" method="post" th:action="@{/exercise/{exid}/exam/{eid}/showResults(exid=${exercise},eid=${exam})}">
+                    <input type="hidden" value="true" name="showResults"/>
+                    <input type="submit" class="btn btn-default btn-xs" value="ändern"/>
+                </form>
+            </td>
+        </tr>
+    </table>
+
+    <a th:href="@{/exercise/{exid}/exam/{eid}/participants/import(exid=${exercise}, eid=${exam})}">Studenten importieren</a>
+    <div th:replace="main :: errorMsg"></div>
+    <table class="table participants-table" id="examparticipantstable" data-toggle="table" data-search="true">
+        <thead>
+            <tr>
+                <th class="export-column">Matrikelnummer</th>
+                <th class="export-column">Nachnahme</th>
+                <th class="export-column">Vorname</th>
+                <th:block th:each="task : ${tasks}">
+                    <th th:text="${task.id}" class="export-column"></th>
+                </th:block>
+                <th class="export-column">Summe</th>
+                <th class="export-column">Note</th>
+                <th data-sortable="false"></th>
+                <th data-sortable="false"></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="participant : ${participants}">
+                <td th:text="${participant.student.id}">1</td>
+                <td th:text="${participant.student.lastname}">1</td>
+                <td th:text="${participant.student.firstname}">1</td>
+                <th:block th:each="task : ${tasks}">
+                    <th th:text="${#strings.defaultString(participant.results.get(task.id),'nt')}"></th>
+                </th:block>
+                <td th:text="${participant.getSum()}">1.0</td>
+                <td th:text="${participant.grade}">1.0</td>
+                <td><a th:href="@{/exercise/{exid}/exam/{eid}/result/add?studentid={sid}(exid=${exercise}, eid=${exam}, sid=${participant.student.id})}">bearbeiten</a></td>
+                <td>
+                    <div onclick="return confirm('Möchten sie den Teilnehmer wirklich entfernen?')">
+                        <a th:href="@{/exercise/{exid}/exam/{eid}/participant/{sid}/delete(exid=${exercise}, eid=${exam}, sid=${participant.student.id})}">entfernen</a>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div th:replace="main :: footer"></div>
+<script th:src="@{/js/datatables.min.js}"></script>
+<script>
+    $(document).ready( function () {
+        $('#examparticipantstable').DataTable({
+            paging: false,
+            info: false,
+            dom: 'fBrtip',
+            buttons: [
+                {
+                    extend: 'copyHtml5',
+                    exportOptions: {
+                        columns: [ '.export-column' ]
+                    },
+                    title: null
+                },
+                {
+                    extend: 'csvHtml5',
+                    exportOptions: {
+                        columns: [ '.export-column' ]
+                    }
+                }
+            ]
+        });
+    } );
+</script>
+</body>
+</html>

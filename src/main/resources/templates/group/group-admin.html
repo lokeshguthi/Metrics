@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="main :: headTag">
+</head>
+<body>
+<div th:replace="main :: navBar"></div>
+
+<div class="container">
+    <p><a th:href="@{/exercise/{eid}(eid=${exercise.id})}">Zurück zur Vorlesung</a></p>
+    <h1>Gruppen der Übung <span th:text="${exercise.id}"></span></h1>
+    <div th:replace="main :: errorMsg"></div>
+    <div class="alert alert-success" th:if="${success}"><p th:text="${success}"></p></div>
+
+    <div>
+        <table>
+            <tr>
+                <td>Status der Anmeldung für Studierende: <span th:text="${exercise.registrationOpen} ? 'geöffnet' : 'geschlossen'"></span></td>
+                <td>
+                    <form class="form-inline" style="display: inline-block" method="post" th:action="@{/exercise/{exid}/admin/registrationStatus(exid=${exercise.id})}">
+                        <input type="hidden" th:value="${!exercise.registrationOpen}" name="registration"/>
+                        <input type="submit" class="btn btn-default btn-xs" value="ändern"/>
+                    </form>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td >Status der Gruppenanmeldung für Studierende: </td>
+                <td>
+                    <form class="form-inline" style="display: inline-block" method="post" th:action="@{/exercise/{exid}/admin/groupJoin(exid=${exercise.id})}">
+                        <select name="groupjoin" class="form-control input-sm">
+                            <option th:each="groupJoin : ${T(de.tukl.softech.exclaim.data.Exercise.GroupJoin).values()}" th:value="${groupJoin}" th:text="${groupJoin.getDisplayName()}" th:selected="${exercise.groupJoin == groupJoin}"></option>
+                        </select>
+                        <input type="submit" class="btn btn-default btn-xs" value="ändern"/>
+                    </form>
+                </td>
+            </tr>
+        </table>
+        <p>
+            <a class="btn btn-default" th:href="@{/exercise/{exid}/groups/admin/import(exid=${exercise.id})}">Studenten importieren</a>
+            <a onclick="return confirm('Möchten Sie die Gruppen wirklich automatisch einteilen?')"
+               class="btn btn-default" th:href="@{/exercise/{exid}/groups/admin/calculateGroups(exid=${exercise.id})}">Studenten automatisch in Gruppen einteilen</a>
+            <a class="btn btn-default" th:href="@{/exercise/{exid}/admin/groups/preferences(exid=${exercise.id})}">Anmeldungen</a>
+            <a class="btn btn-default" th:href="@{/exercise/{exid}/admin/tutors(exid=${exercise.id})}">Tutoren ändern</a>
+        </p>
+    </div>
+
+
+    <div id="grouptable">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Tag</th>
+                    <th>Zeit</th>
+                    <th class="col-sm-2">Ort</th>
+                    <th>Max Größe</th>
+                    <th>Aktuelle Größe</th>
+                    <th>Tutoren</th>
+                    <th class="col-sm-3"></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="group : ${groups}">
+                    <td th:text="${group.groupId}" class="group-id"></td>
+                    <td th:text="${@format.weekDay(group.day)}" th:attr="data-day=${group.day}" class="group-day"></td>
+                    <td th:text="${group.time}" class="group-time"></td>
+                    <td th:text="${group.location}" class="group-location"></td>
+                    <td th:text="${group.maxSize}" class="group-max"></td>
+                    <td th:text="${group.size}"></td>
+                    <td th:text="${@format.joinStrings(group.tutors)}"></td>
+                    <td>
+                        <span class="btn btn-default edit-button">bearbeiten</span>
+                        <form class="form-inline" style="display: inline-block" onsubmit="return confirm('Gruppe wirklich entfernen?');" method="post" th:action="@{/exercise/{eid}/admin/groups/{gid}/delete(eid=${exercise.id}, gid=${group.groupId})}">
+                            <input type="submit" class="btn btn-default" value="entfernen"/>
+                        </form>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div id="groupform">
+        <form class="form-horizontal" method="post" th:action="@{/exercise/{exid}/admin/groups(exid=${exercise.id})}">
+            <div class="form-group">
+                <label for="groupid" class="col-sm-1 control-label">Id:</label>
+                <div class="col-sm-6">
+                    <input type="text" class="form-control" id="groupid" name="groupid"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="day" class="col-sm-1 control-label">Tag:</label>
+                <div class="col-sm-6">
+                    <th:block th:with="days = ${ {Monday:'Montag', Tuesday:'Dienstag', Wednesday:'Mittwoch', Thursday:'Donnerstag', Friday:'Freitag', Saturday:'Samstag', Sunday:'Sonntag'} }">
+                        <select class="form-control" id="day" name="day">
+                            <option th:each="d : ${days}" th:value="${d.key}" th:text="${d.value}">
+                            </option>
+                        </select>
+                    </th:block>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="time" class="col-sm-1 control-label">Zeit:</label>
+                <div class="col-sm-6">
+                    <input type="text" class="form-control" id="time" name="time"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="location" class="col-sm-1 control-label">Ort:</label>
+                <div class="col-sm-6">
+                    <input type="text" class="form-control" id="location" name="location"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="maxSize" class="col-sm-1 control-label">Max Größe:</label>
+                <div class="col-sm-6">
+                    <input type="text" class="form-control" id="maxSize" name="maxSize"/>
+                </div>
+            </div>
+            <div class="col-sm-offset-1 col-sm-10">
+                <input type="submit" class="btn btn-primary" value="hinzufügen"/>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div th:replace="main :: footer"></div>
+<script>
+    $(document).ready( function () {
+        $("#grouptable > table > tbody > tr").each(function() {
+            $this = $(this);
+            var id = $this.find("td.group-id").text();
+            var day = $this.find("td.group-day").attr('data-day');
+            var time = $this.find("td.group-time").text();
+            var location = $this.find("td.group-location").text();
+            var max = $this.find("td.group-max").text();
+
+            $this.find(".edit-button").click(function (e) {
+                $form = $("#groupform > form");
+                $form.find("#groupid").val(id);
+                $form.find("#day").val(day);
+                $form.find("#time").val(time);
+                $form.find("#location").val(location);
+                $form.find("#maxSize").val(max);
+                $form[0].scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    } );
+</script>
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="main :: headTag">
+</head>
+<body>
+<div th:replace="main :: navBar"></div>
+
+<div class="container">
+    <p><a th:href="@{/exercise/{exid}/exam/admin(exid=${exercise})}">Zurück zur Klausurverwaltung</a></p>
+    <div th:replace="main :: errorMsg"></div>
+
+    <div id="examgradeform">
+        <input type="hidden" class="exam-data"
+               th:attr="data-exclaimContext=@{/},data-csrf=${_csrf.token},data-exerciseId=${exercise},data-examId=${exam}"/>
+        <form class="" method="post" action="#" th:action="@{/exercise/{exid}/exam/{eid}/result/add(exid=${exercise},eid=${exam})}" th:object="${resultForm}">
+            <div class="form-group">
+                <label for="firstname" class="col-sm-2 control-label">Vorname</label>
+                <div class="col-sm-10">
+                    <p id="firstname">-</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="lastname" class="col-sm-2 control-label">Nachnahme</label>
+                <div class="col-sm-10">
+                    <p id="lastname">-</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="studentId" class="col-sm-2 control-label">Matrikelnummer</label>
+                <div class="col-sm-2">
+                    <input type="text" class="form-control" th:field="*{studentId}"/>
+                </div>
+                <p class="col-sm-2" id="newparticipant"></p>
+            </div>
+
+            <div class="col-sm-12">
+            <table class="table table-bordered table-condensed" style="width: auto">
+                <thead>
+                    <tr>
+                        <th style="width: 140px">Aufgabe</th>
+                        <th:block th:each="task : ${tasks}">
+                            <th th:text="${task.id}" style="width: 70px"></th>
+                        </th:block>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr id="task_results">
+                        <td>Punkte</td>
+                        <th:block th:each="task : ${tasks}">
+                                <td>
+                                    <!--<label th:for="${'input-' + task.id}" class="control-label sr-only">Matrikelnummer</label>-->
+                                    <input type="text" class="form-control pointEntry" th:field="*{results[__${task.id}__]}" style="width: 60px"/>
+                                </td>
+
+                        </th:block>
+                    </tr>
+                    <tr>
+                        <td>Maximum</td>
+                        <th:block th:each="task : ${tasks}">
+                            <th th:text="${task.maxPoints}"></th>
+                        </th:block>
+                    </tr>
+                </tbody>
+            </table>
+            </div>
+            <div class="col-sm-12">
+            <table class="table table-bordered table-condensed" style="width: auto;">
+                <tr>
+                    <td style="width: 140px">Gesamtpunktzahl</td>
+                    <td style="width: 70px" id="sumPoints">-</td>
+                </tr>
+                <tr>
+                    <td>Maximum</td>
+                    <td th:text="${maxPoints}">0.0</td>
+                </tr>
+            </table>
+            </div>
+
+
+            <div class="col-sm-12">
+                <input type="submit" class="btn btn-primary" value="Übernehmen"/>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div th:replace="main :: footer"></div>
+
+<script>
+// data passed in by special html element
+var passedData = $(document).find(".exam-data");
+var exclaimContext = passedData.attr('data-exclaimContext');
+var exerciseId = passedData.attr('data-exerciseId');
+var examId = passedData.attr('data-examId');
+
+$(document).ready(function(){
+    $(".pointEntry").each(function() {
+        $(this).on('input', function(){
+            updateSum();
+        });
+    });
+    var id = $("#studentId");
+    id.focus();
+    id.on('input', function(){
+        getStudentInfos();
+    });
+    updateSum();
+    if (id.val().length !== 0) {
+        getStudentInfos();
+    }
+});
+
+function updateSum() {
+    var sum = 0;
+    $(".pointEntry").each(function() {
+        if(!isNaN(this.value) && this.value.length!=0) {
+            sum += parseFloat(this.value);
+        }
+    });
+    $("#sumPoints").html(sum.toFixed(1));
+}
+
+function getStudentInfos() {
+    id = $("#studentId");
+    if (id.val().length === 6) {
+        $.get(exclaimContext
+            + "exercise/" + encodeURIComponent(exerciseId)
+            + "/exam/" + encodeURIComponent(examId)
+            + "/student",
+            {studentid: id.val()})
+            .fail(function () {
+                alert("Student konnte nicht geladen werden.");
+            })
+            .done(setData);
+    } else {
+        setData({
+            firstname: '-',
+            lastname: '-',
+            newparticipant: false
+        });
+    }
+}
+
+function setData(resp) {
+    $("#firstname").text(resp.firstname);
+    $("#lastname").text(resp.lastname);
+    if (resp.newparticipant) {
+        $("#newparticipant").html("<b>Neuer Teilnehmer</b>");
+    } else {
+        $("#newparticipant").html("");
+    }
+    $('#task_results input').each(function(i, elem) {
+        var elemId = $(elem).attr('id');
+        var id = elemId.replace('results','');
+        var text = "";
+        if (resp.results) {
+            text = resp.results[id];
+        }
+        $(elem).attr('value', text);
+    });
+    updateSum();
+}
+
+</script>
+</body>
+</html>

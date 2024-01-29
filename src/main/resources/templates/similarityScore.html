@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="main :: headTag">
+</head>
+<body>
+<div th:replace="main :: navBar"></div>
+
+<div class="container">
+    <p><a th:href="@{/exercise/{exid}(exid=${exercise})}">Zurück zu Übung <span th:text="${exercise}">SE1</span></a></p>
+    <h1>Ergebnisse des Ähnlichkeitsprüfers</h1>
+    <div th:if="${isAssistant}">
+        <a th:href="@{/exercise/{exid}(exid=${exercise})}">
+            <button class="btn btn-default startSimilarityCheck-button"
+                    th:attr="data-sheetId=${sheet},
+                    data-exerciseId=${exercise}",
+                    data-csrfToken=${_csrf.token}>
+                Prüfung (neu) starten
+            </button></a>
+        <br>
+            Bitte die Seite nach dem sarten des Prüfers in ein paar Minuten neu laden.
+    </div>
+    <div id="similarityscores">
+        <span th:if="${scores.empty}">Entweder wurder noch kein Test für dieses Blatt durchgeführt, oder Etwas ist schiefgelaufen.
+            </span>
+            <div th:each="assignment,iter : ${scores}" style="width: 600px">
+                <h2><span th:text="${'Aufgabe ' + (iter.index + 1) + ')'}"> Etwas ist schiefgelaufen </span></h2>
+                <a th:href="@{/exercise/{exid}/sheet/{sid}/similarityScoreForAssignment/{aid}(exid=${exercise},sid=${sheet},aid=${(iter.index + 1)})}">Alle Scores anzeigen</a>
+                <table class="fixed_header">
+                    <thead>
+                    <tr style="width: 583px">
+                        <th>Gruppe-Team 1</th> <th>Gruppe-Team 2</th> <th>Score</th><th>Vergleichen</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="oneLine : ${assignment}">
+                        <td><span th:text="${oneLine.group1 + '-' + oneLine.team1}"> Fehler </span></td>
+                        <td><span th:text="${oneLine.group2 + '-' + oneLine.team2}"> Fehler </span></td>
+                        <td><span th:text="${oneLine.score}"> Fehler </span></td>
+                        <td>
+                            <a style="text-align: right"
+                               th:href="@{/exercise/{exid}/sheet/{sid}/compare/{asid}/{gid1}/{tid1}/{filename1}/{gid2}/{tid2}/{filename2}
+                            (exid=${exercise},sid=${sheet},asid=${oneLine.assignment},gid1=${oneLine.group1},tid1=${oneLine.team1},filename1=${oneLine.filename1},gid2=${oneLine.group2},tid2=${oneLine.team2},filename2=${oneLine.filename2})}">👁</a></td>
+
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+    </div>
+
+    <br>
+
+</div>
+
+<div th:replace="main :: footer"></div>
+<script th:src="@{/js/similarityCheckerScript.js}"></script>
+<style>
+    .fixed_header{
+        width: 600px;
+        table-layout: fixed;
+        border-collapse: collapse;
+    }
+
+    .fixed_header tbody{
+        display:block;
+        width: 100%;
+        overflow: auto;
+        max-height: 250px;
+    }
+
+    .fixed_header thead tr {
+        display: block;
+    }
+
+    .fixed_header th, .fixed_header td {
+        padding-top: 2px;
+        text-align: center;
+        width: 150px;
+    }
+</style>
+</body>
+</html>

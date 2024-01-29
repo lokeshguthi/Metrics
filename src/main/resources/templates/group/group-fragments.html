@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Title</title>
+</head>
+<body>
+<th:block th:fragment="groupElement(group, canJoin, isMember)">
+    <div class="col-sm-3">
+        <div class="group-element" th:classappend="${isMember} ? 'memberElement'">
+            <table>
+                <td>
+                    <h4 style="text-decoration: underline">Gruppe <span th:text="${group.groupId}"></span></h4>
+                </td>
+                <td th:if="${canJoin}" class="text-right">
+                    <form class="form-inline" style="display: inline-block" method="post" th:action="@{/exercise/{exid}/groups/join(exid=${group.exerciseId})}">
+                        <input type="hidden" th:value="${!isMember}" name="join"/>
+                        <input type="hidden" th:value="${group.groupId}" name="group"/>
+                        <input type="submit" class="btn btn-default btn-xs" th:value="${isMember} ? 'Austragen' : 'Eintragen'"/>
+                    </form>
+                </td>
+            </table>
+            <table>
+                <tr>
+                    <td>Tag:</td>
+                    <td th:text="${@format.weekDay(group.day)}"></td>
+                </tr>
+                <tr>
+                    <td>Zeit:</td>
+                    <td th:text="${group.time}"></td>
+                </tr>
+                <tr>
+                    <td>Raum:</td>
+                    <td th:text="${group.location}"></td>
+                </tr>
+                <tr>
+                    <td>Tutor:</td>
+                    <td th:text="${@format.joinStrings(group.tutors)}"></td>
+                </tr>
+                <tr>
+                    <td>Mitglieder:</td>
+                    <td th:text="${group.size} + '/' + ${group.maxSize}"></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</th:block>
+
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="main :: headTag">
+</head>
+<body>
+<div th:replace="main :: navBar"></div>
+
+<div class="container-fluid">
+
+    <!--@thymesVar id="prefInfos" type="java.util.List<de.tukl.softech.exclaim.controllers.GroupController.UserPreferenceInfo>"-->
+    <!--@thymesVar id="groups" type="java.util.List<de.tukl.softech.exclaim.data.Group>"-->
+    <!--@thymesVar id="exercise" type="String"-->
+
+    <p><a th:href="@{/exercise/{exid}(exid=${exercise})}">Zurück zu Übung <span th:text="${exercise}">SE1</span></a></p>
+    <h1>Anmeldungen für Übung <span th:text="${exercise}">SE1</span></h1>
+    <div th:replace="main :: errorMsg"></div>
+    <a th:unless="${previewAssignment}" th:href="@{/exercise/{exid}/admin/groups/preferences-preview(exid=${exercise})}" role="button" class="btn btn-default">Vorschau der Gruppeneinteilung</a>
+    <a th:if="${previewAssignment}" th:href="@{/exercise/{exid}/admin/groups/preferences(exid=${exercise})}" role="button" class="btn btn-default">Vorschau Beenden</a>
+
+    <a th:href="@{/exercise/{exid}/admin/groups/friends(exid=${exercise})}" role="button" class="btn btn-default">Freunde-Graph</a>
+
+    <div>
+        <table class="table" id="resulttable" data-toggle="table" data-search="true">
+            <thead>
+                <tr>
+                    <th>Gruppe</th>
+                    <th>Team</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Benutzername</th>
+                    <th>Freunde</th>
+                    <th:block th:each="group : ${groups}">
+                        <th th:text="${group.getGroupId()}" th:title="${group.getDay() + ', ' + group.getTime() + ', ' + group.getLocation() + ', ' + group.getTutors()}">Group</th>
+                    </th:block>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr th:each="info : ${prefInfos}">
+                    <!--@thymesVar id="info" type="de.tukl.softech.exclaim.controllers.GroupController.UserPreferenceInfo"-->
+                    <td><th:block th:if="${info.team}" th:text="${info.team.getGroup()}" />  </td>
+                    <td><th:block th:if="${info.team}" th:text="${info.team.getTeam()}" />  </td>
+                    <td th:text="${info.user.getRealname()}"></td>
+                    <td th:text="${info.user.getEmail()}"></td>
+                    <td th:text="${info.user.getUsername()}"></td>
+                    <td th:text="${@format.joinStrings(info.groupPreferences.getFriends())}"></td>
+                    <th:block th:each="group : ${groups}">
+                        <td th:class="${(info.team != null && info.team.getGroup() == group.getGroupId() ? 'selected ' : '') + 'preference-' + info.getPreference(group.getGroupId()).name()}">
+                            <span th:if="${info.getPreference(group.getGroupId())== T(model.other.PreferenceStatus).UNDEFINED}">?</span>
+                            <span th:if="${info.getPreference(group.getGroupId())== T(model.other.PreferenceStatus).PREFERRED}">++</span>
+                            <span th:if="${info.getPreference(group.getGroupId())== T(model.other.PreferenceStatus).POSSIBLE}">+</span>
+                            <span th:if="${info.getPreference(group.getGroupId())== T(model.other.PreferenceStatus).DISLIKE}">-</span>
+                            <span th:if="${info.getPreference(group.getGroupId())== T(model.other.PreferenceStatus).IMPOSSIBLE}">--</span>
+                        </td>
+                    </th:block>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div th:replace="main :: footer"></div>
+<script th:src="@{/js/datatables.min.js}"></script>
+<script>
+    $(document).ready( function () {
+        $('#resulttable').DataTable({
+            paging: false,
+            info: false,
+            dom: 'fBrtip',
+            buttons: [
+                {
+                    extend: 'copyHtml5',
+                    title: null,
+                    header: null,
+                    exportOptions: {
+                        columns: ':not(.notexport)'
+                    }
+                },
+                {
+                    extend: 'csvHtml5',
+                    header: null,
+                    exportOptions: {
+                        columns: ':not(.notexport)'
+                    }
+                }
+            ]
+        });
+
+    } );
+</script>
+</body>
+</html>

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="main :: headTag">
+</head>
+<body>
+<div th:replace="main :: navBar"></div>
+
+<div class="container">
+    <p><a th:href="@{/user}">Zurück zur Benutzerverwaltung</a></p>
+    <div th:replace="main :: errorMsg"></div>
+    <div th:unless="${user}">
+        <h3>Benutzer nicht gefunden.</h3>
+    </div>
+    <div th:if="${user}">
+        <div id="user-admin" class="col-sm-8 col-sm-offset-2">
+            <h2>Benutzerdaten</h2>
+            <div id="userform">
+                <form action="#" class="form-horizontal" method="post" th:action="@{/user/changedata}" th:object="${user}">
+                    <input type="text" class="hidden" th:field="*{userid}"/>
+                    <div class="form-group"  th:classappend="${#fields.hasErrors('username')} ? has-error">
+                        <label for="username" class="col-sm-3 control-label">Nutzername:</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control"  th:field="*{username}" />
+                        </div>
+                    </div>
+                    <div class="form-group"  th:classappend="${#fields.hasErrors('studentid')} ? has-error">
+                        <label for="studentid" class="col-sm-3 control-label">Matrikelnummer:</label>
+                        <div class="col-sm-9">
+                            <p class="form-control-static" th:text="${@format.empty(user.studentid)}" id="studentid"></p>
+                        </div>
+                    </div>
+                    <div class="form-group"  th:classappend="${#fields.hasErrors('email')} ? has-error">
+                        <label for="email" class="col-sm-3 control-label">Email:</label>
+                        <div class="col-sm-9">
+                            <input type="email" class="form-control" th:field="*{email}"/>
+                            <div class="help-block" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"/>
+                        </div>
+                    </div>
+                    <div class="form-group"  th:classappend="${#fields.hasErrors('firstname')} ? has-error">
+                        <label for="firstname" class="col-sm-3 control-label">Vorname:</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" th:field="*{firstname}"/>
+                            <div class="help-block" th:if="${#fields.hasErrors('firstname')}" th:errors="*{firstname}"/>
+                        </div>
+                    </div>
+                    <div class="form-group"  th:classappend="${#fields.hasErrors('lastname')} ? has-error">
+                        <label for="lastname" class="col-sm-3 control-label">Nachname:</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" th:field="*{lastname}"/>
+                            <div class="help-block" th:if="${#fields.hasErrors('lastname')}" th:errors="*{lastname}"/>
+                        </div>
+                    </div>
+                    <div class="form-group"  th:classappend="${#fields.hasErrors('admin')} ? has-error">
+                        <label for="admin" class="col-sm-3 control-label">Admin:</label>
+                        <div class="col-sm-9">
+                            <input type="checkbox" class="form-control" th:field="*{admin}"/>
+                            <div class="help-block" th:if="${#fields.hasErrors('admin')}" th:errors="*{admin}"/>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-offset-3 col-sm-2">
+                        <input type="submit" class="btn btn-primary" value="ändern"/>
+                    </div>
+                    <div class="col-sm-7 form-control-static" th:if="${datachanged}"><p th:text="${datachanged}"></p></div>
+                </form>
+            </div>
+        </div>
+        <div id="set-password" class="col-sm-8 col-sm-offset-2">
+            <h2>Neues Passwort setzen</h2>
+            <form action="#" class="form-horizontal" method="post" th:action="@{/user/password}" th:object="${passwordChange}">
+                <input type="text" class="hidden" th:field="*{username}" autocomplete="off"/>
+                <div class="form-group"  th:classappend="${#fields.hasErrors('password')} ? has-error">
+                    <label for="password" class="col-sm-3 control-label">Neues Passwort:</label>
+                    <div class="col-sm-9">
+                        <input type="password" class="form-control" th:field="*{password}" autocomplete="new-password"/>
+                        <div class="help-block" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"/>
+                    </div>
+                </div>
+                <div class="form-group"  th:classappend="${#fields.hasErrors('password2')} ? has-error">
+                    <label for="password2" class="col-sm-3 control-label">Neues Passwort bestätigen:</label>
+                    <div class="col-sm-9">
+                        <input type="password" class="form-control" th:field="*{password2}" autocomplete="new-password"/>
+                        <div class="help-block" th:if="${#fields.hasErrors('password2')}" th:errors="*{password2}"/>
+                    </div>
+                </div>
+                <div class="col-sm-offset-3 col-sm-2">
+                    <input type="submit" class="btn btn-primary" value="ändern"/>
+                </div>
+                <div class="col-sm-7 form-control-static" th:if="${passwordchanged}"><p th:text="${passwordchanged}"></p></div>
+            </form>
+        </div>
+    </div>
+    <div id="user-rights" class="col-sm-8 col-sm-offset-2">
+        <h2>Benutzerrechte</h2>
+        <ul>
+            <li th:if="${user.admin}">Admin</li>
+            <th:block th:each="right : ${exerciseRights}">
+                <li th:if="${right.role.name() == 'assistant'}">Assistent für Übung <span th:text="${right.exerciseId}"></span></li>
+                <li th:if="${right.role.name() == 'tutor'}">Tutor für Übung <span th:text="${right.exerciseId}"></span></li>
+                <li th:if="${right.role.name() == 'student'}">Student in Übung <span th:text="${right.exerciseId}"></span></li>
+            </th:block>
+        </ul>
+    </div>
+
+    <div th:if="${verificationLink}" class="col-sm-8 col-sm-offset-2">
+        <p>Konto noch nicht aktiviert, Aktivierungslink:</p>
+        <a th:href="${verificationLink}" th:text="${verificationLink}">Aktivierungslink</a>
+    </div>
+
+    <div class="col-sm-2 col-sm-offset-8">
+        <form class="form-inline" style="display: inline-block" onsubmit="return confirm('Möchten Sie das Konto wirklich löschen? (nur möglich wenn mit diesem Konto keine weiteren Informationen verknüpft sind)');" method="post" th:action="@{/user/delete}">
+            <input type="hidden" id="userid" name="userid" th:value="${user.userid}">
+            <input type="submit" class="btn btn-danger" value="Account löschen"/>
+        </form>
+    </div>
+
+</div>
+
+<div th:replace="main :: footer"></div>
+</body>
+</html>

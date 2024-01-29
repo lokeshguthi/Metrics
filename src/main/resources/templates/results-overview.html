@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="main :: headTag">
+</head>
+<body>
+<div th:replace="main :: navBar"></div>
+
+<div class="container-fluid">
+
+    <!-- Modal -->
+    <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="edit Dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+
+                <form class="form-horizontal" method="post" th:action="@{/exercise/{exid}/results/editUser(exid=${exercise})}">
+                    <input type="hidden" id="studentid" name="studentid"/>
+
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="modalLabel">Benutzer</h4>
+                    </div>
+
+                    <div class="modal-body">
+                        <div th:if="${isAssistant}" class="form-group">
+                            <label for="studentidtext" class="col-sm-4 control-label">Matrikelnummer:</label>
+                            <div class="col-sm-6">
+                                <p  class="form-control-static" id="studentidtext"></p>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="name" class="col-sm-4 control-label">Name:</label>
+                            <div class="col-sm-6">
+                                <p  class="form-control-static" id="name" name="name"></p>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="group" class="col-sm-4 control-label">Gruppe:</label>
+                            <div class="col-sm-6">
+                                <select class="form-control" id="group" name="group" th:attrappend="disabled=${@accessChecker.hasAdminRight(exercise) ? null : 'true'}">
+                                    <option th:each="g : ${exerciseGroups}" th:value="${g}" th:text="${g}">
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="team" class="col-sm-4 control-label">Team:</label>
+                            <div class="col-sm-6">
+                                <input type="text" class="form-control" id="team" name="team"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <input type="submit" class="btn btn-primary" value="ändern"/>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <p><a th:href="@{/exercise/{exid}(exid=${exercise})}">Zurück zu Übung <span th:text="${exercise}">SE1</span></a></p>
+    <h1>Punkteübersicht für Übung <span th:text="${exercise}">SE1</span></h1>
+    <div th:replace="main :: errorMsg"></div>
+    <a th:href="${@format.formatEmail(@accessChecker.getEmail(), students)}" role="button" class="btn btn-default">Email an alle Studenten</a>
+    <a th:href="@{/exercise/{exid}/change-teams(exid=${exercise})}" role="button" class="btn btn-default">Teams ändern</a>
+    <div>
+        <table class="table" id="resulttable" data-toggle="table" data-search="true">
+            <thead>
+                <tr>
+                    <th th:if="${isAssistant}" data-sortable="true">ID</th>
+                    <th data-sortable="true">Gruppe</th>
+                    <th data-sortable="true">Team</th>
+                    <th data-sortable="true">Name</th>
+                    <th:block th:each="sheet : ${sheets}">
+                        <th th:text="${sheet.id}"></th>
+                    </th:block>
+                    <th>Gesamtpunkte</th>
+                    <th th:unless="${sheets.isEmpty()}" th:attr="colspan=${sheets.size()}">Anwesend</th>
+                    <th>Gesamt</th>
+                    <th data-sortable="false"></th>
+                </tr>
+                <tr>
+                    <th th:if="${isAssistant}"></th>
+                    <th class="html-data-column"></th>
+                    <th class="html-data-column"></th>
+                    <th class="html-data-column"></th>
+                    <th:block th:each="sheet : ${sheets}">
+                        <th th:text="${((pointsForSheet.get(sheet.id) != null) ? ('(' + @format.points(pointsForSheet.get(sheet.id)) + ')') : '')}"></th>
+                    </th:block>
+                    <th th:text="${'(' + @format.points(totalPoints) + ')'}"></th>
+                    <th:block th:each="sheet : ${sheets}">
+                        <th th:text="${sheet.id}"></th>
+                    </th:block>
+                    <th></th>
+                    <th data-sortable="false" class="notexport"></th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr th:each="student : ${students}" th:attr="data-student-id=${student.id}">
+                    <td th:if="${isAssistant}" class="studentid" th:text="${student.id}">310001</td>
+                    <td class="group" th:attr="data-order=${@format.teamJson(student.team)}"><a th:href="${groupEmail.get(student.team.group)}" th:text="${@format.empty(student.team.group)}"></a></td>
+                    <td class="team"  th:attr="data-order=${@format.teamJson(student.team)}"><a th:href="${teamEmail.get(student.team)}" th:text="${@format.empty(student.team.team)}"></a></td>
+                    <td class="name" th:attr="data-order=${student.nameJson()}"><a th:href="${@format.formatEmail(student.email)}" th:text="${student.lastname + ', ' + student.firstname}"></a></td>
+                    <th:block th:each="sheet : ${sheets}">
+                        <td th:text="${@format.pointsOpt(pointsForStudentAndSheet.get(student.id).get(sheet.id))}"></td>
+                    </th:block>
+                    <td th:text="${@format.pointsOpt(pointsForStudent.get(student.id))}">
+                    </td>
+                    <th:block th:each="sheet : ${sheets}">
+                        <td th:if="${studentAttendance.get(student.id).get(sheet.id)}" data-order="1">
+                            <div align="center">
+                                <span   class="glyphicon glyphicon-ok" aria-label="Ja" aria-hidden="true"><span style="visibility: hidden">1</span></span>
+                            </div>
+                        </td>
+                        <td th:if="${studentAttendance.get(student.id).get(sheet.id) != null and !studentAttendance.get(student.id).get(sheet.id)}"  data-order="0">
+                            <div align="center">
+                                <span   class="glyphicon glyphicon-remove" aria-label="Nein" aria-hidden="true"><span style="visibility: hidden">0</span></span>
+                            </div>
+                        </td>
+                        <td th:if="${studentAttendance.get(student.id).get(sheet.id) == null}"  data-order="-1"></td>
+                    </th:block>
+                    <td th:text="${totalAttendance.get(student.id)}">total</td>
+                    <td><a href="#" class="edit">edit</a><span th:if="${@accessChecker.hasAdminRight(exercise)}"> / <span onclick="return confirm('Möchten sie den Teilnehmer wirklich entfernen?')">
+                        <a th:href="@{/exercise/{exid}/results/deleteUser/{sid}(exid=${exercise}, sid=${student.id})}">delete</a>
+                    </span></span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div th:replace="main :: footer"></div>
+<script th:src="@{/js/datatables.min.js}"></script>
+<script>
+    $(document).ready( function () {
+        $('#resulttable').DataTable({
+            paging: false,
+            info: false,
+            dom: 'fBrtip',
+            order: [
+                [1, 'asc']
+            ],
+            columnDefs: [
+                { "type": "html", "targets": "html-data-column" }
+            ],
+            buttons: [
+                {
+                    extend: 'copyHtml5',
+                    title: null,
+                    header: null,
+                    exportOptions: {
+                        columns: ':not(.notexport)'
+                    }
+                },
+                {
+                    extend: 'csvHtml5',
+                    header: null,
+                    exportOptions: {
+                        columns: ':not(.notexport)'
+                    }
+                }
+            ]
+        });
+
+        $('a.edit').on('click', function() {
+            var myModal = $('#editModal');
+
+            var studentid = $(this).closest('tr').data('student-id');
+            var group = $(this).closest('tr').find('td.group > a').text();
+            var team = $(this).closest('tr').find('td.team > a').text();
+            var name = $(this).closest('tr').find('td.name > a').text();
+
+            $('#studentid', myModal).val(studentid);
+            $('#studentidtext', myModal).text(studentid);
+            $('#group', myModal).val(group);
+            if (team === '-') {
+                $('#team', myModal).val(null);
+            } else {
+                $('#team', myModal).val(team);
+            }
+            $('#name', myModal).text(name);
+
+            myModal.modal({ show: true });
+        });
+    } );
+</script>
+</body>
+</html>

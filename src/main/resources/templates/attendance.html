@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="main :: headTag">
+</head>
+<body>
+<div th:replace="main :: navBar"></div>
+
+<div class="container">
+    <p><a th:href="@{/exercise/{exid}(exid=${exercise})}">Zurück zu Übung <span th:text="${exercise}">SE1</span></a></p>
+    <h1>Anwesenheit in Übung</h1>
+    <div id="attendancetable">
+        <div th:each="group : ${groups}">
+            <h2>Gruppe <span th:text="${group}">02</span></h2>
+            <form class="form-horizontal" method="post" th:action="@{/exercise/{exid}/sheet/{sid}/attendance(exid=${exercise},sid=${sheet})}">
+                <input type="hidden" name="group" id="group" th:value="${group}"/>
+                <table class="table attendanceTableForGroup">
+                    <tr>
+                        <th th:if="${isAssistant}">ID</th>
+                        <th>Name</th>
+                        <th>Anwesend</th>
+                    </tr>
+                    <tr th:each="student : ${students.get(group)}">
+                        <td th:if="${isAssistant}" th:text="${student.id}">310001</td>
+                        <td th:text="|${student.lastname}, ${student.firstname}|">Mustermann, Max</td>
+                        <td>
+                            <input type="hidden" th:name="${'stud-' + student.id}" th:id="${'stud-' + student.id + '-default'}" value="false"/>
+                            <input type="checkbox" th:name="${'stud-' + student.id}" th:id="${'stud-' + student.id}" value="true" th:checked="${attendance.getOrDefault(student.id, true)}"/>
+                        </td>
+                    </tr>
+                </table>
+                <input type="submit" class="btn btn-primary" value="speichern"/>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div th:replace="main :: footer"></div>
+</body>
+</html>

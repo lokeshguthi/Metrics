@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="main :: headTag">
+</head>
+<body>
+<div th:replace="main :: navBar"></div>
+
+<!--/* Workaround for bug https://youtrack.jetbrains.com/issue/IDEA-132738 -->
+<!--@thymesVar id="overviewData" type="java.util.List<de.tukl.softech.exclaim.controllers.ExerciseController.OverviewDataForTeam>"-->
+<!--@thymesVar id="exercise" type="String"-->
+<!--@thymesVar id="sheet" type="String"-->
+<!--*/-->
+
+
+<div class="container" th:with="isTutor=${@accessChecker.hasAssessRight(exercise)}">
+    <div id="stomp-error" style="display: none; position: fixed" class="alert alert-warning">
+        
+    </div>
+    
+    <p><a th:href="@{/exercise/{ex}(ex=${exercise})}">Zurück zu Übung
+        <th:block th:text="${exercise}"/>
+    </a></p>
+    <h2 th:text="'Übersicht für Übung ' + ${exercise} + ' Blatt ' + ${sheet}"></h2>
+
+    <div th:if="${@accessChecker.hasAssessRight(exercise)}">
+        <a th:href="@{/zip/{e}/{s}(e=${exercise},s=${sheet})}">Alle Dateien herunterladen</a>
+    </div>
+
+
+    <div th:if="${isTutor}">
+        <button class="btn btn-default startAllTests-button"
+                th:attr="data-sheetId=${sheet},
+                     data-exerciseId=${exercise},
+                     data-contextPath=@{'/'},
+                     data-csrfToken=${_csrf.token}">Alle Tests starten
+        </button>
+        <button class="btn btn-default btn-toggle" type="button">Alle schließen</button>
+    </div>
+
+    <div th:if="${#lists.isEmpty(overviewData)}">
+        Sie sind momentan in kein Abgabeteam eingeteilt.
+        Erst wenn Sie in ein Team eingeteilt wurden, können Sie hier Dateien hochladen.
+        Kontaktieren Sie gegebenenfalls Ihre Tutorin bzw. Ihren Tutor.
+    </div>
+
+    <div th:attr="class=${isTutor} ? 'panel panel-default'" th:each="data : ${overviewData}">
+        <div th:if="${isTutor}" class="panel-heading" data-toggle="collapse" 
+             th:href="'#collapsepanel' + ${data.team.getGroup()} + ${data.team.getTeam()}">
+	        <a><span th:text="${data.team}"></span>
+		            (<span th:text="${@format.getCommaDelimetedOfObjects(data.students)}"></span>)
+	        </a> 
+        </div>
+        <div th:unless="${isTutor}"><h3 th:text="${data.team}"></h3></div>
+        <div th:attr="class=${isTutor} ? 'panel-body collapse in'" th:id="'collapsepanel' + ${data.team.getGroup()} + ${data.team.getTeam()}">
+            <ul>
+                <li th:each="stud : ${data.students}">
+                    <th:block th:text="${stud.student.getFirstname() + ' ' + stud.student.getLastname()}">
+                    </th:block>
+                    <strong th:if="${stud.deltaPointsAvailable()}">
+                        :
+                        <th:block th:text="${@format.pointsDelta(stud.delta)}"/>
+                        <th:block th:if="${stud.deltaReasonAvailable()}" th:text="${'(' + stud.reason + ')'}"/>
+                    </strong>
+                </li>
+            </ul>
+
+            <table class="table">
+                <colgroup>
+                    <col span="1"/>
+                    <col span="1" style="width: 100%"/>
+                    <col span="1"/>
+                </colgroup>
+                <tr>
+                    <th>Aufgabe</th>
+                    <th>Dateien</th>
+                    <th>Punkte</th>
+                </tr>
+                <th:block th:each="assign : ${data.assignments}">
+                    <tr  th:replace="fragments :: assignmentRow(${data}, ${assign})">
+                    </tr>
+                </th:block>
+            </table>
+            <div class="panel panel-default" th:if="${!data.isCommentHidden() or @accessChecker.hasAssessRight(exercise)}">
+                <div class="panel-body">
+                    <th:block th:utext="${data.commentAsHtml()}"/>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div th:replace="main :: footer"></div>
+<script th:src="@{/js/robust-websocket.js}"></script>
+<script th:src="@{/js/webstomp.min.js}"></script>
+<script th:src="@{/js/rte-test-buttons.js}"></script>
+</body>
+</html>

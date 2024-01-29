@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="main :: headTag">
+</head>
+<body>
+<div th:replace="main :: navBar"></div>
+
+<!--/* Workaround for bug https://youtrack.jetbrains.com/issue/IDEA-132738 -->
+<!--@thymesVar id="testResult" type="de.tukl.softech.exclaim.data.Testresult"-->
+<!--@thymesVar id="testResultDetails" type="de.tukl.softech.exclaim.transferdata.TestResultDetails"-->
+<!--@thymesVar id="exercise" type="String"-->
+<!--@thymesVar id="sheet" type="String"-->
+<!--@thymesVar id="assignment" type="String"-->
+<!--@thymesVar id="team" type="de.tukl.softech.exclaim.data.Team"-->
+<!--@thymesVar id="requestnr" type="int"-->
+<!--@thymesVar id="resultsBySnapshot" type="java.util.Map<org.joda.time.DateTime, List<de.tukl.softech.exclaim.data.Testresult>>"-->
+<!--@thymesVar id="loc_number" type="int"-->
+<!--@thymesVar id="comments_number" type="int"-->
+<!--*/-->
+
+<div class="container">
+    <div id="stomp-error" style="display: none; position: fixed" class="alert alert-warning">
+
+    </div>
+
+    <h1 th:text="${exercise + ': Blatt' + sheet + ', Aufgabe ' + assignment}"></h1>
+    <h2 th:text="${'Gruppe ' + team.group + ', Team ' + team.team}"></h2>
+
+    <div th:replace="fragments :: testResultDisplay(${testResult}, ${testResultDetails})"></div>
+
+    <th:block th:if="${testResult != null && showstatistics}">
+        <div th:replace="fragments :: testStatistics(${exercise}, ${sheet}, ${assignment}, ${team.group}, ${team.team}, ${requestnr})"></div>
+    </th:block>
+
+    <h1>Alle Versionen und Tests:</h1>
+
+    <th:block th:each="entry : ${resultsBySnapshot.entrySet()}">
+        <div class="assignment-row">
+            <div class="panel-group assignment-panel"
+                 th:attr="
+                                         data-group=${team.getGroup()},
+                                         data-team=${team.getTeam()},
+                                         data-sheetId=${sheet},
+                                         data-assignmentId=${assignment},
+                                         data-exerciseId=${exercise},
+                                         data-snapshot=${entry.key},
+                                         data-contextPath=@{'/'},
+                                         data-csrfToken=${_csrf.token}">
+
+                <h2 th:text="${'Version von ' + @format.date(entry.key)}"></h2>
+
+                <div class="test-box">
+                    <form class="test-form" method="post" th:action="@{/exercise/{e}/sheet/{s}/{a}/test(e=${exercise},s=${sheet},a=${assignment})}">
+                        <input type="hidden" name="group" th:value="${team.group}"/>
+                        <input type="hidden" name="team" th:value="${team.team}"/>
+                        <input type="hidden" name="snapshot" th:value="${entry.key}"/>
+                        <button class="btn btn-default test-button" type="submit">Tests starten</button>
+                    </form>
+
+                    <div class="test-results">
+
+                    </div>
+                </div>
+
+<!-- creating a table for LOC and Comment -->
+                <table class="table">
+                    <tr th:each="tr : ${entry.value}">
+                        <td>
+                            #
+                            <th:block th:text="${tr.requestnr}"/>
+                        </td>
+                        <td>
+                            <th:block th:replace="testresult_fragment::testresult(${tr})"/>
+                        </td>
+
+                        <td>
+                            <table class="table">
+                                <tr>
+                                    <th>LOC</th>
+                                    <th>Comments</th>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <th:block th:replace="testresult_fragment::testresultmetrics(${tr}, 'loc_number')">
+                                    </td>
+                                    <td>
+                                        <th:block th:replace="testresult_fragment::testresultmetrics(${tr}, 'comments_number')">
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </th:block>
+</div>
+
+<div th:replace="main :: footer"></div>
+<script th:src="@{/js/Chart.min.js}"></script>
+<script th:src="@{/js/robust-websocket.js}"></script>
+<script th:src="@{/js/webstomp.min.js}"></script>
+<script th:src="@{/js/rte-test-buttons.js}"></script>
+<script th:src="@{/webjars/monaco-editor/0.10.1/min/vs/loader.js}"></script>
+<script th:src="@{/js/enable-monaco-diffs.js}"></script>
+<script th:src="@{/js/statistics.js}"></script>
+</body>
+</html>

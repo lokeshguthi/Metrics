@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="main :: headTag">
+</head>
+<body>
+<div th:replace="main :: navBar"></div>
+
+<div class="container">
+    <p><a th:href="@{/exercise/{exid}(exid=${exercise})}">Zurück zu Übung <span th:text="${exercise}">SE1</span></a></p>
+    <h1>Verwaltung der Klausuren</h1>
+    <div th:replace="main :: errorMsg"></div>
+    <div id="examtable">
+        <table class="table">
+            <tr>
+                <th>ID</th>
+                <th>Bezeichnung</th>
+                <th>Datum</th>
+                <th>Ort</th>
+                <th>Funktionen</th>
+            </tr>
+            <tr th:each="exam : ${exams}">
+                <td th:text="${exam.id}">1</td>
+                <td th:text="${exam.label}">Klausur 1</td>
+                <td th:text="${@format.date(exam.date)}">1970-01-01T12:00</td>
+                <td th:text="${exam.location}">Sporthalle</td>
+                <td>
+                    <a class="btn btn-default" th:href="@{/exercise/{exid}/exam/{eid}/tasks(exid=${exercise},eid=${exam.id})}">Aufgaben</a>
+                    <a class="btn btn-default" th:href="@{/exercise/{exid}/exam/{eid}/grades(exid=${exercise},eid=${exam.id})}">Notenschlüssel</a>
+                    <a class="btn btn-default" th:href="@{/exercise/{exid}/exam/{eid}/participants(exid=${exercise},eid=${exam.id})}">Teilnehmer</a>
+                    <a class="btn btn-default" th:href="@{/exercise/{exid}/exam/{eid}/result/add(exid=${exercise},eid=${exam.id})}">Ergebnis eintragen</a>
+                    <form class="form-inline" style="display: inline-block" onsubmit="return confirm('Klausur wirklich löschen?');" method="post" th:action="@{/exercise/{exid}/exam/{eid}/delete(exid=${exercise},eid=${exam.id})}">
+                        <input type="submit" class="btn btn-default" value="löschen"/>
+                    </form>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div id="examform">
+        <form class="form-horizontal" method="post" th:action="@{/exercise/{exid}/exam/(exid=${exercise})}">
+            <div class="form-group">
+                <label for="id" class="col-sm-2 control-label">ID</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="id" name="id"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="label" class="col-sm-2 control-label">Bezeichnung</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="label" name="label"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="date" class="col-sm-2 control-label">Datum</label>
+                <div class="col-sm-10">
+                    <input type="datetime-local" class="form-control" id="date" name="date"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="location" class="col-sm-2 control-label">Ort</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="location" name="location"/>
+                </div>
+            </div>
+            <div class="col-sm-offset-2 col-sm-10">
+                <input type="submit" class="btn btn-primary" value="erstellen"/>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div th:replace="main :: footer"></div>
+</body>
+</html>

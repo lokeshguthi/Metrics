@@ -1,0 +1,2 @@
+UPDATE uploads SET delete_date = DATEADD(second, DATEDIFF(second, DATE '1970-01-01', delete_date), DATE '1970-01-01');
+UPDATE testresult SET snapshot = DATEADD(second, DATEDIFF(second, DATE '1970-01-01', snapshot), DATE '1970-01-01');

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="main :: headTag">
+</head>
+<body>
+<div th:replace="main :: navBar"></div>
+
+<div class="container">
+    <p><a th:href="@{/exercise/{eid}(eid=${exercise.id})}">Zurück zur Vorlesung</a></p>
+    <h1>Gruppen der Übung <span th:text="${exercise.id}"></span></h1>
+    <div class="alert alert-success" th:if="${success}"><p>Präferenzen erfolgreich aktualisiert</p></div>
+    <div th:replace="main :: errorMsg"></div>
+
+        <form method="post" th:action="@{/exercise/{exid}/groups/preferences(exid=${exercise.id})}">
+        <p>
+            Hier k&ouml;nnen Sie ausw&auml;hlen, zu welchen Zeiten Sie an einer &Uuml;bungsstunde teilnehmen k&ouml;nnen.
+            Bitte w&auml;hlen Sie "unm&ouml;glich" nur dann aus, wenn Sie in diesem Slot eine andere Universit&auml;ts-Veranstaltung haben.
+        </p>
+        <table class="table table-striped table-bordered" id="preference-table">
+            <thead>
+                <tr>
+                    <th rowspan="2">Tag</th>
+                    <th rowspan="2">Start-/Endzeit</th>
+                    <th colspan="4">Ihre Präferenz</th>
+                </tr>
+                <tr>
+                    <th class="col-sm-2" style="background-color: lightgreen;" id="preferred">Bevorzugt</th>
+                    <th class="col-sm-2" style="background-color: lightgoldenrodyellow;" id="possible">Möglich</th>
+                    <th class="col-sm-2" style="background-color: #ee6119;" id="dislike">Ungern</th>
+                    <th class="col-sm-2" style="background-color: #bf2914;" id="impossible">Unmöglich</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="group : ${groups}">
+                    <td th:text="${@format.weekDay(group.day)}" th:id="${group.groupId + '-day'}"></td>
+                    <td th:text="${group.time}" th:id="${group.groupId + '-time'}"></td>
+                    <td class="col-sm-2 preference-selection">
+                        <label>
+                            <input type="radio" th:name="${group.groupId}" value="1" th:checked="${preferences.getPreferences().get(group.groupId) != null && preferences.getPreferences().get(group.groupId).getInternalValue() == 1}" th:attr="aria-labelledby=${'preferred ' + group.groupId + '-day ' + group.groupId + '-time'}">
+                        </label>
+                    </td>
+                    <td class="col-sm-2 preference-selection">
+                        <label>
+                            <input type="radio" th:name="${group.groupId}" value="2" th:checked="${preferences.getPreferences().get(group.groupId) != null && preferences.getPreferences().get(group.groupId).getInternalValue() == 2}" th:attr="aria-labelledby=${'possible ' + group.groupId + '-day ' + group.groupId + '-time'}">
+                        </label>
+                    </td>
+                    <td class="col-sm-2 preference-selection">
+                        <label>
+                            <input type="radio" th:name="${group.groupId}" value="3" th:checked="${preferences.getPreferences().get(group.groupId) != null && preferences.getPreferences().get(group.groupId).getInternalValue() == 3}" th:attr="aria-labelledby=${'dislike ' + group.groupId + '-day ' + group.groupId + '-time'}">
+                        </label>
+                    </td>
+                    <td class="col-sm-2 preference-selection">
+                        <label>
+                            <input type="radio" th:name="${group.groupId}" value="4" th:checked="${preferences.getPreferences().get(group.groupId) != null && preferences.getPreferences().get(group.groupId).getInternalValue() == 4}" th:attr="aria-labelledby=${'impossible ' + group.groupId + '-day ' + group.groupId + '-time'}">
+                        </label>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p>
+            Wenn Sie z.B. zusammen mit Freunden in die selbe &Uuml;bungsgruppe eingeteilt werden wollen, k&ouml;nnen Sie
+            dies hier angeben.
+            Tragen Sie dazu die <strong>Usernamen</strong> von bis zu vier Personen ein (oder lassen Sie
+            andernfalls die Felder
+            frei).
+        </p>
+        <p>
+            Achten Sie darauf, dass Sie oben gen&uuml;gend gemeinsame Termine mit Ihren Freunden ausw&auml;hlen.
+        </p>
+        <table class="table table-bordered" id="preference-users-table">
+            <tr th:each="i :  ${#numbers.sequence(1,4)}">
+                <td th:text="${'Benutzername ' + i}" class="col-sm-2" style="vertical-align: middle"></td>
+                <td class="col-sm-4"><input type="text" th:name="${'user' + i}" class="form-control" th:value="${usernames.get('user' + i)}"></td>
+                <td class="error" style="vertical-align: middle"><div th:if="${usernameErrors != null && usernameErrors.get('user' + i) != null}" class="alert alert-danger" style="padding: 5px; margin-bottom: 0"><span th:text="${usernameErrors.get('user' + i)}"></span></div></td>
+            </tr>
+        </table>
+        <div class="col-sm-12">
+            <input type="submit" class="btn btn-primary" value="Absenden"/>
+        </div>
+
+    </form>
+</div>
+
+<div th:replace="main :: footer"></div>
+</body>
+</html>

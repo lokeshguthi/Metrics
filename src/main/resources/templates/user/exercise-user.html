@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="main :: headTag">
+</head>
+<body>
+<div th:replace="main :: navBar"></div>
+
+<div class="container">
+    <p><a th:href="@{/exercise/{exid}(exid=${exercise})}">Zurück zur Vorlesung</a></p>
+    <div>
+        <h1>[[${exercise}]] - Nutzer</h1>
+    </div>
+
+    <div th:if="${result}">
+        <h2 th:text="${result}"></h2>
+    </div>
+
+    <div id="exTab2" class="container">
+        <ul class="nav nav-tabs">
+            <li class="active">
+                <a  href="#1" data-toggle="tab">Nutzer hinzufügen</a>
+            </li>
+            <li><a href="#2" data-toggle="tab">Nutzer erstellen</a>
+            </li>
+            <li><a href="#3" data-toggle="tab">Mehrere Nutzer erstellen</a>
+            </li>
+        </ul>
+
+        <div class="tab-content ">
+            <div class="tab-pane active" id="1">
+                <div id="exerciseadduserform" class="container" style="padding: 2em">
+                    <form action="#" class="form-horizontal" method="post" th:action="@{/exercise/{exid}/user?function=add(exid=${exercise})}" th:object="${exerciseUserForm}">
+                        <div class="form-group"  th:classappend="${#fields.hasErrors('username')} ? has-error">
+                            <label for="username" class="col-sm-2 control-label">Nutzername</label>
+                            <div class="col-sm-6">
+                                <input type="text" class="form-control" th:field="*{username}" th:errorclass="is-invalid"/>
+                                <div class="help-block" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"/>
+                            </div>
+                        </div>
+                        <div class="form-group"  th:classappend="${#fields.hasErrors('team.group')} ? has-error">
+                            <label for="team.group" class="col-sm-2 control-label">Gruppe</label>
+                            <div class="col-sm-6">
+                                <input type="text" class="form-control" th:field="*{team.group}" th:errorclass="is-invalid"/>
+                                <div class="help-block" th:if="${#fields.hasErrors('team.group')}" th:errors="*{team.group}"/>
+                            </div>
+                        </div>
+                        <div class="form-group"  th:classappend="${#fields.hasErrors('team.team')} ? has-error">
+                            <label for="team.team" class="col-sm-2 control-label">Team</label>
+                            <div class="col-sm-6">
+                                <input type="text" class="form-control" th:field="*{team.team}" th:errorclass="is-invalid"/>
+                                <div class="help-block" th:if="${#fields.hasErrors('team.team')}" th:errors="*{team.team}"/>
+                            </div>
+                        </div>
+                        <div class="form-group"  th:classappend="${#fields.hasErrors('role')} ? has-error">
+                            <label for="role" class="col-sm-2 control-label">Funktion</label>
+                            <div class="col-sm-6">
+                                <select class="form-control" th:field="*{role} ">
+                                    <option th:each="role : ${roles}"
+                                            th:value="${role}"
+                                            th:text="${role.toString()}">Student</option>
+                                </select>
+                                <div class="help-block" th:if="${#fields.hasErrors('role')}" th:errors="*{role}"/>
+                            </div>
+                        </div>
+                        <div class="col-sm-offset-2 col-sm-6">
+                            <input type="submit" class="btn btn-primary" value="erstellen"/>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="tab-pane" id="2">
+                <h3>Notice the gap between the content and tab after applying a background color</h3>
+            </div>
+            <div class="tab-pane" id="3">
+                <div id="exercisecreateusersform" class="container" style="padding: 2em">
+                    <form action="#" class="form-horizontal" method="post" th:action="@{/exercise/{exid}/user(exid=${exercise})}" th:object="${numberStudents}">
+                        <div class="form-group"  th:classappend="${#fields.hasErrors('number')} ? has-error">
+                            <label for="number" class="col-sm-2 control-label">Anzahl Studenten</label>
+                            <div class="col-sm-6">
+                                <input type="text" class="form-control" th:field="*{number}" th:errorclass="is-invalid"/>
+                                <div class="help-block" th:if="${#fields.hasErrors('number')}" th:errors="*{number}"/>
+                            </div>
+                        </div>
+                        <div class="col-sm-offset-2 col-sm-6">
+                            <input type="submit" class="btn btn-primary" value="erstellen"/>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+    <div id="usertable" style="margin-top: 2em">
+        <table class="table">
+            <tr>
+                <th>Nutzername</th>
+                <th>Name</th>
+                <th>Funktion</th>
+                <th>Team</th>
+            </tr>
+            <tr th:each="user : ${users}">
+                <td th:text="${user.username}">maxmuster</td>
+                <td th:text="${user.firstname + ' ' + user.lastname}">Max Mustermann</td>
+                <td th:text="${user.role}">student</td>
+                <td th:text="${user.teamsToString()}">student</td>
+            </tr>
+        </table>
+    </div>
+
+
+
+
+</div>
+
+<div th:replace="main :: footer"></div>
+</body>
+</html>

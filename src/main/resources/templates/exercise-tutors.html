@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="main :: headTag">
+</head>
+<body>
+<div th:replace="main :: navBar"></div>
+
+<div class="container">
+    <p><a th:href="@{/exercise/{eid}(eid=${exercise})}">Zurück zur Vorlesung</a></p>
+    <h1>Tutoren der Vorlesung <span th:text="${exercise}"></span></h1>
+    <div th:replace="main :: errorMsg"></div>
+    <div id="tutortable">
+        <table class="table">
+            <tr>
+                <th>Nutzername</th>
+                <th>Vorname</th>
+                <th>Nachname</th>
+                <th>Gruppe</th>
+                <th></th>
+            </tr>
+            <tr th:each="tutor : ${tutors}">
+                <td th:text="${tutor.user.username}"></td>
+                <td th:text="${tutor.user.firstname}"></td>
+                <td th:text="${tutor.user.lastname}"></td>
+                <td th:text="${tutor.group}"></td>
+                <td>
+                    <form class="form-inline" style="display: inline-block" onsubmit="return confirm('Tutor wirklich entfernen?');" method="post" th:action="@{/exercise/{eid}/admin/tutors/{uid}/delete(eid=${exercise}, uid=${tutor.user.userid})}">
+                        <input type="hidden" name="group" th:value="${tutor.group}" />
+                        <input type="submit" class="btn btn-default" value="entfernen"/>
+                    </form>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div id="tutorform">
+        <form class="form-horizontal" method="post" th:action="@{/exercise/{exid}/admin/tutors(exid=${exercise})}">
+            <div class="form-group">
+                <label for="username" class="col-sm-1 control-label">Nutzername:</label>
+                <div class="col-sm-6">
+                    <input type="text" class="form-control" id="username" name="username"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="group" class="col-sm-1 control-label">Gruppe:</label>
+                <div class="col-sm-6">
+                    <input type="text" class="form-control" id="group" name="group"/>
+                </div>
+            </div>
+            <div class="col-sm-offset-1 col-sm-10">
+                <input type="submit" class="btn btn-primary" value="hinzufügen"/>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div th:replace="main :: footer"></div>
+</body>
+</html>

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Title</title>
+</head>
+<body>
+<th:block th:fragment="examOverview(exam, isExaminer, isTutor)">
+    <div style="width: 100%">
+    <h3 th:text="${exam.exam.label}" style="display: inline"></h3>
+        <th:block th:if="${exam.exam.registrationOpen and !isExaminer}">
+            <form class="form-inline" style="display: inline-block" method="post" th:action="@{/exercise/{exid}/exam/{eid}/register(exid=${exercise},eid=${exam.exam.id})}">
+                <input type="hidden" name="register" th:value="${!exam.isRegistered}"/>
+                <input th:if="${exam.isRegistered}" type="submit" class="btn btn-default btn-sm" value="abmelden"/>
+                <input th:unless="${exam.isRegistered}" type="submit" class="btn btn-default btn-sm" value="anmelden"/>
+            </form>
+        </th:block>
+    </div>
+    <table>
+        <tr>
+            <td>Datum:</td>
+            <td th:text="${@format.date(exam.exam.date)}"></td>
+        </tr>
+        <tr>
+            <td>Ort:</td>
+            <td th:text="${exam.exam.location}"></td>
+        </tr>
+        <tr>
+            <td>Status:</td>
+            <th:block th:if="${isExaminer}">
+                <td th:if="${exam.exam.registrationOpen}">Anmeldung möglich</td>
+                <td th:if="${!exam.exam.registrationOpen}">Anmeldung nicht möglich</td>
+            </th:block>
+            <th:block th:unless="${isExaminer}">
+                <td th:if="${exam.isRegistered}" style="color: #009B00">Angemeldet</td>
+                <td th:unless="${exam.isRegistered}" style="color: #9B0000">Nicht angemeldet</td>
+            </th:block>
+        </tr>
+        <tr>
+            <td>Ergebnisse:</td>
+            <td th:if="${exam.exam.showResults and exam.isRegistered}"><a th:href="@{/exercise/{exid}/exam/{eid}/result(exid=${exercise},eid=${exam.exam.id})}">verfügbar</a></td>
+            <td th:unless="${exam.exam.showResults and exam.isRegistered}">nicht verfügbar</td>
+        </tr>
+        <tr th:if="${isExaminer or (exam.exam.showResults and isTutor)}">
+            <td>Auswertung:</td>
+            <td><a th:href="@{/exercise/{exid}/exam/{eid}/evaluation(exid=${exercise},eid=${exam.exam.id})}">anzeigen</a></td>
+        </tr>
+    </table>
+
+</th:block>
+
+<th:block th:fragment="resultTable(tasks, results, sumPoints, maxPoints)">
+    <table class="table table-bordered" style="display: inline-block; width: auto; vertical-align: top;">
+        <thead>
+            <tr>
+                <th>Aufgabe</th>
+                <th>Punkte</th>
+                <th>Maximum</th>
+            </tr>
+        </thead>
+        <tbody>
+            <th:block th:each="task : ${tasks}">
+                <tr>
+                    <td th:text="${task.id}"></td>
+                    <td th:text="${results.get(task.id)}"></td>
+                    <td th:text="${task.maxPoints}"></td>
+                </tr>
+            </th:block>
+            <tr>
+                <td><strong>Summe</strong></td>
+                <td><strong th:text="${sumPoints}"></strong></td>
+                <td><strong th:text="${maxPoints}"></strong></td>
+            </tr>
+        </tbody>
+    </table>
+</th:block>
+
+<th:block th:fragment="gradeTable(grades)">
+    <table class="table table-bordered" style="display: inline-block; width: auto; vertical-align: top;">
+        <thead>
+        <tr>
+            <th>Note</th>
+            <th>Punkte</th>
+        </tr>
+        </thead>
+        <tbody>
+        <th:block th:each="grade : ${grades}">
+            <tr>
+                <td th:text="${grade.grade}"></td>
+                <td th:text="${grade.minPoints}"></td>
+            </tr>
+        </th:block>
+        </tbody>
+    </table>
+</th:block>
+
+<th:block th:fragment="gradeOverview(exid, examid)">
+    <div class="grade-overview" style="display: inline-block">
+        <input type="hidden" class="grade-data"
+               th:attr="data-exclaimContext=@{/},data-csrf=${_csrf.token},data-exerciseId=${exid},data-examId=${examid}"/>
+        <div class="grade-overview-chart" style="max-width: 450px; max-height: 450px; display: inline-block">
+            <canvas id="grade-overview-canvas" width="450" height="450"></canvas>
+        </div>
+    </div>
+</th:block>
+
+<th:block th:fragment="pointsOverview(exid, examid)">
+    <div class="points-overview" style="display: inline-block">
+        <input type="hidden" class="points-data"
+               th:attr="data-exclaimContext=@{/},data-csrf=${_csrf.token},data-exerciseId=${exid},data-examId=${examid}"/>
+        <div class="points-overview-chart" style="max-width: 650px; max-height: 450px; display: inline-block">
+            <canvas id="points-overview-canvas" width="650" height="450"></canvas>
+        </div>
+    </div>
+</th:block>
+
+</body>
+</html>
